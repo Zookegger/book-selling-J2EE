@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>404 - LuminaBook</title>
+
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+</head>
+
+<body>
+    <th:block th:replace="layout::header"></th:block>
+
+    <main class="container-xl flex-grow-1 py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h4 class="card-title mb-4 text-center fw-bold">404 - Trang không tồn tại</h4>
+                        <p class="card-text text-center">Xin lỗi, trang bạn đang tìm kiếm không tồn tại.</p>
+                        <a th:href="@{/}" class="btn btn-primary fw-semibold py-2">Quay lại trang chủ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="layout::footer"></th:block>
+</body>
+
+</html>

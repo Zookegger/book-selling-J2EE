@@ -4,11 +4,11 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.group.book_selling.models.User;
+import com.group.book_selling.models.Author;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface IAuthorRepository extends JpaRepository<Author, Long> {
 
-    Optional<User> findByEmail(String email);
+    Optional<Author> findBySlug(String slug);
 
     boolean existsByEmail(String email);
 }

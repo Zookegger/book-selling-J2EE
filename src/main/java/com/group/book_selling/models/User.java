@@ -134,7 +134,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false)
-    private UserRole role = UserRole.CUSTOMER;
+    private UserRole role = UserRole.USER;
 
     @Builder.Default
     private boolean isEmailVerified = false;

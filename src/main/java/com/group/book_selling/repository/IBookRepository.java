@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.group.book_selling.models.Book;
 
-public interface BookRepository extends JpaRepository<Book, Long> {
+public interface IBookRepository extends JpaRepository<Book, Long> {
 
     Optional<Book> findBySlug(String slug);
 

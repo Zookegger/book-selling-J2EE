@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:fragment="link-css">
+        <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/css/global.css}" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+            integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.13.1/font/bootstrap-icons.min.css"
+            integrity="sha512-t7Few9xlddEmgd3oKZQahkNI4dS6l80+eGEzFQiqtyVYdvcSG2D3Iub77R20BdotfRPA9caaRkg1tyaJiPmO0g=="
+            crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </th:block>
+    <title>LuminaBook — Cửa hàng sách</title>
+</head>
+
+<body>
+
+    <header th:fragment="header">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+            <div class="container-fluid container-xl">
+
+                <a class="navbar-brand fw-bold fs-4 me-4" href="/">
+                    Lumina<span class="text-primary">Book</span>
+                </a>
+
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2 fw-medium">
+                        <li class="nav-item"><a class="nav-link px-2" href="/books">Sách</a></li>
+                        <li class="nav-item"><a class="nav-link px-2" href="/genres">Thể loại</a></li>
+                        <li class="nav-item"><a class="nav-link px-2" href="/bestsellers">Bán chạy</a></li>
+                        <li class="nav-item"><a class="nav-link px-2" href="/about">Giới thiệu</a></li>
+                    </ul>
+
+                    <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+                        <button class="btn btn-link text-secondary p-0 border-0" title="Tìm kiếm" aria-label="Tìm kiếm">
+                            <i class="bi bi-search fs-5"></i>
+                        </button>
+                        <a href="/cart" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold"><i
+                                class="fa fa-cart-shopping me-2"></i>Giỏ hàng (0)</a>
+                        <button class="btn btn-link text-secondary p-0 border-0" title="Tài khoản"
+                            aria-label="Tài khoản">
+                            <i class="fa fa-user fs-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </nav>
+    </header>
+
+    <div th:insert="~{::${content}}"></div>
+
+    <footer class="bg-dark text-white pt-5 pb-4 mt-auto">
+        <div class="container-xl">
+
+            <div class="row gy-4 mb-4 ps-xs-4 ps-sm-5">
+                <div class="col-12 col-md-6 ps-md-4">
+                    <p class="fs-4 fw-bold mb-2">LuminaBook</p>
+                    <p class="text-white-50 lh-lg">
+                        Sách tuyển chọn dành cho người ham đọc. Giao tận nơi.
+                    </p>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <p class="text-uppercase fw-semibold mb-3">Cửa hàng</p>
+                    <ul class="list-unstyled lh-lg mb-0">
+                        <li><a href="/books" class="text-white-50 text-decoration-none">Tất cả sách</a></li>
+                        <li><a href="/genres" class="text-white-50 text-decoration-none">Thể loại</a></li>
+                        <li><a href="/bestsellers" class="text-white-50 text-decoration-none">Bán chạy</a></li>
+                        <li><a href="/new" class="text-white-50 text-decoration-none">Sản phẩm mới</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <p class="text-uppercase fw-semibold mb-3">Trợ giúp</p>
+                    <ul class="list-unstyled lh-lg mb-0">
+                        <li><a href="/faq" class="text-white-50 text-decoration-none">Câu hỏi thường gặp</a></li>
+                        <li><a href="/shipping" class="text-white-50 text-decoration-none">Vận chuyển</a></li>
+                        <li><a href="/returns" class="text-white-50 text-decoration-none">Đổi trả</a></li>
+                        <li><a href="/contact" class="text-white-50 text-decoration-none">Liên hệ</a></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <hr class="border-secondary opacity-50 mb-4">
+
+            <div
+                class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-white-50 small">
+                <p class="mb-0">&copy; 2026 LuminaBook. Mọi quyền được bảo lưu.</p>
+                <ul class="list-inline mb-0">
+                    <li class="list-inline-item"><a href="/privacy" class="text-white-50 text-decoration-none">Quyền
+                            riêng tư</a></li>
+                    <li class="list-inline-item ms-3"><a href="/terms" class="text-white-50 text-decoration-none">Điều
+                            khoản</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    </footer>
+
+</body>
+
+</html>

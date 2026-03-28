@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.group.book_selling.models.Publisher;
 
-public interface PublisherRepository extends JpaRepository<Publisher, Long> {
+public interface IPublisherRepository extends JpaRepository<Publisher, Long> {
 
     Optional<Publisher> findBySlug(String slug);
 
