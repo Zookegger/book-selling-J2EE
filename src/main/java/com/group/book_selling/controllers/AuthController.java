@@ -5,15 +5,31 @@
 
 package com.group.book_selling.controllers;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import com.group.book_selling.models.User;
+import com.group.book_selling.models.UserRole;
+import com.group.book_selling.services.UserServices;
+
+import jakarta.validation.Valid;
 
 /**
  *
- * @author HELLO
+ * @author Nguyen Duc Trung
  */
 @Controller
 public class AuthController {
+    @Autowired UserServices userService;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -22,6 +38,23 @@ public class AuthController {
 
     @GetMapping("/register")
     public String registerPage() {
+
         return "auth/register";
+    }
+
+    @PostMapping("/register")
+    public String register(@Valid @ModelAttribute("user") User user, BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            List<FieldError> errors = result.getFieldErrors();
+            for (FieldError error : errors) {
+                model.addAttribute(error.getField() + "_error", error.getDefaultMessage());
+            }
+
+            return "auth/register";
+        }
+        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        user.setRole(UserRole.USER);
+        userService.save(user);
+        return "redirect:/login";
     }
 }

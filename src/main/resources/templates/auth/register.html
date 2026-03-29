@@ -10,17 +10,31 @@
 </head>
 
 <body>
-    <th:block th:replace="layout::header"></th:block>
+    <th:block th:replace="~{layout::header}"></th:block>
 
     <main class="container-xl flex-grow-1 py-5">
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-lg-6">
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
                         <h4 class="card-title mb-4 text-center fw-bold">Tạo tài khoản mới</h4>
 
                         <form th:action="@{/register}" method="post" class="needs-validation" id="registerForm"
                             novalidate>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small fw-medium">Họ</label>
+                                    <input type="text" name="firstName" class="form-control" placeholder="Họ" required>
+                                    <div class="invalid-feedback">Vui lòng nhập họ.</div>
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label small fw-medium">Tên</label>
+                                    <input type="text" name="lastName" class="form-control" placeholder="Tên" required>
+                                    <div class="invalid-feedback">Vui lòng nhập tên.</div>
+                                </div>
+                            </div>
 
                             <div class="mb-3">
                                 <label class="form-label small fw-medium">Email</label>
@@ -31,14 +45,14 @@
 
                             <div class="mb-3">
                                 <label class="form-label small fw-medium">Mật khẩu</label>
-                                <input type="password" name="password" id="password" class="form-control" required
+                                <input type="password" name="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required
                                     minlength="8" />
                                 <div class="invalid-feedback">Mật khẩu phải có ít nhất 8 ký tự.</div>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label small fw-medium">Xác nhận mật khẩu</label>
-                                <input type="password" id="confirm_password" class="form-control" required />
+                                <input type="password" id="confirm_password" class="form-control" placeholder="Nhập lại mật khẩu" required />
                                 <div class="invalid-feedback" id="confirm-error">Mật khẩu xác nhận không khớp.</div>
                             </div>
 
@@ -86,7 +100,7 @@
         </script>
     </main>
 
-    <th:block th:replace="layout::footer"></th:block>
+    <th:block th:replace="~{layout::footer}"></th:block>
 </body>
 
 </html>

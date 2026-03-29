@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <th:block th:replace="layout::header"></th:block>
+    <th:block th:replace="~{layout::header}"></th:block>
 
     <main class="container-xl flex-grow-1 py-5">
         <div class="row justify-content-center">
@@ -26,7 +26,7 @@
         </div>
     </main>
 
-    <th:block th:replace="layout::footer"></th:block>
+    <th:block th:replace="~{layout::footer}"></th:block>
 </body>
 
 </html>
