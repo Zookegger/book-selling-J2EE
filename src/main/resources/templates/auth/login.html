@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Đăng nhập - LuminaBook</title>
+
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-xl flex-grow-1 py-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-6 col-md-6 col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4 text-center">Đăng nhập</h4>
+                        
+                        <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                            Email hoặc mật khẩu không đúng.
+                        </div>
+                        
+                        <form th:action="@{/login}" method="post">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+                                th:value="${_csrf.token}" />
+
+                            <div class="form-group mb-3">
+                                <i class="fa-regular fa-envelope"></i>
+                                <label for="username" class="form-label">Email</label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                    placeholder="you@example.com" required autofocus />
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <i class="bi bi-lock"></i>
+                                <label for="password" class="form-label">Mật khẩu</label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                    placeholder="Password" required />
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me" />
+                                <label class="form-check-label" for="remember-me">Ghi nhớ đăng nhập</label>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary"><i class="fa fa-key me-1"></i> Đăng nhập</button>
+                                <a class="btn btn-outline-primary" th:href="@{/register}"><i class="fa fa-user-plus me-1"></i> Tạo tài khoản</a>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+
+</html>
