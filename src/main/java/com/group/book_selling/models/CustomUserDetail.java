@@ -12,19 +12,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.group.book_selling.repository.IUserRepository;
-
 /**
  *
  * @author Nguyen Duc Trung
  */
 public class CustomUserDetail implements UserDetails {
     private final User user;
-    private final IUserRepository userRepository;
 
-    public CustomUserDetail(User user, IUserRepository userRepository) {
+    public CustomUserDetail(User user) {
         this.user = user;
-        this.userRepository = userRepository;
     }
 
     @Override

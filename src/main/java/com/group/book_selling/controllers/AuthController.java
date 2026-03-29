@@ -8,7 +8,7 @@ package com.group.book_selling.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -29,7 +29,10 @@ import jakarta.validation.Valid;
  */
 @Controller
 public class AuthController {
-    @Autowired UserServices userService;
+    @Autowired
+    private UserServices userService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -52,7 +55,7 @@ public class AuthController {
 
             return "auth/register";
         }
-        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(UserRole.USER);
         userService.save(user);
         return "redirect:/login";
