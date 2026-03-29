@@ -28,5 +28,5 @@ Ung dung Spring Boot cho bai toan ban sach (Book Selling).
 
 ## Ghi chu
 
-- Cac endpoint `/api/**` dang duoc mo de setup/dev nhanh.
-- Truoc khi production, can bo sung service layer, xu ly exception tap trung va chinh sach bao mat chat hon.
+- Cac endpoint `/api/**` hien tai duoc bao ve boi cau hinh `SecurityConfig` (yeu cau xac thuc).
+- Truoc khi production, can bo sung service layer, xu ly exception tap trung va hoan thien chinh sach bao mat chat hon.

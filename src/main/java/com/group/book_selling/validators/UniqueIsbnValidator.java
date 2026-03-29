@@ -28,7 +28,7 @@ public class UniqueIsbnValidator implements ConstraintValidator<UniqueIsbn, Stri
         }
 
         if (bookRepository == null) {
-            return true;
+            throw new IllegalStateException("IBookRepository not injected into UniqueIsbnValidator");
         }
 
         Optional<Book> existingBook = bookRepository.findByIsbn(isbn);
@@ -38,7 +38,7 @@ public class UniqueIsbnValidator implements ConstraintValidator<UniqueIsbn, Stri
 
         Long currentBookId = extractPathBookId();
         if (currentBookId == null) {
-            return false;
+            throw new IllegalStateException("Failed to extract book ID from request path");
         }
 
         Long foundId = existingBook.get().getId();
