@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${book.title} + ' - LuminaBook'">Thông tin sách</title>
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-xl flex-grow-1 py-5">
+        <div class="mb-4">
+            <a class="btn btn-outline-secondary" th:href="@{/books}"><i class="fa fa-arrow-left me-1"></i> Quay về</a>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-4">
+                            <img th:if="${book.coverImage != null and !book.coverImage.isBlank()}" th:src="${book.coverImage}"
+                                class="img-fluid" alt="Ảnh bìa sách" />
+                            <div th:if="${book.coverImage == null or book.coverImage.isBlank()}" class="bg-light py-5">
+                                <span class="text-muted">Không có ảnh bìa</span>
+                            </div>
+                        </div>
+                        <a class="btn btn-primary w-100 mb-2" th:href="@{/books/{slug}/edit(slug=${book.slug})}">Chỉnh sửa</a>
+                        <form th:action="@{/books/{slug}/delete(slug=${book.slug})}" method="post" class="d-grid">
+                            <button type="submit" class="btn btn-outline-danger">Xóa sách</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h1 class="h3 mb-3" th:text="${book.title}"></h1>
+                        <p class="text-muted mb-3" th:text="${book.subtitle}"></p>
+                        <p class="mb-3" th:text="${book.description}"></p>
+
+                        <dl class="row">
+                            <dt class="col-sm-4">ISBN</dt>
+                            <dd class="col-sm-8" th:text="${book.isbn}"></dd>
+
+                            <dt class="col-sm-4">Ngày xuất bản</dt>
+                            <dd class="col-sm-8" th:text="${book.publicationDate}"></dd>
+
+                            <dt class="col-sm-4">Ngôn ngữ</dt>
+                            <dd class="col-sm-8" th:text="${book.language}"></dd>
+
+                            <dt class="col-sm-4">Số trang</dt>
+                            <dd class="col-sm-8" th:text="${book.pageCount}"></dd>
+
+                            <dt class="col-sm-4">Nhà xuất bản</dt>
+                            <dd class="col-sm-8" th:text="${book.publisher != null ? book.publisher.name : 'Không có'}"></dd>
+
+                            <dt class="col-sm-4">Tác giả</dt>
+                            <dd class="col-sm-8">
+                                <span th:each="author,iterStat : ${book.authors}">
+                                    <span th:text="${author.name}"></span><span th:if="${!iterStat.last}">, </span>
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-4">Danh mục</dt>
+                            <dd class="col-sm-8">
+                                <span th:each="category,iterStat : ${book.categories}">
+                                    <span th:text="${category.name}"></span><span th:if="${!iterStat.last}">, </span>
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+
+</html>
