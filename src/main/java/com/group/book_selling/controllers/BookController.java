@@ -53,6 +53,15 @@ public class BookController {
         this.publisherRepository = publisherRepository;
     }
 
+    /** Tim kiem sach theo keyword */
+    @GetMapping("/search")
+    public List<Book> search(@RequestParam String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return bookRepository.findAll();
+        }
+        return bookRepository.searchBooks(keyword);
+    }
+    
     /** Lay danh sach sach. */
     @GetMapping
     public List<Book> findAll() {
