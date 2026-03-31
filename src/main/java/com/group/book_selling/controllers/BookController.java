@@ -49,7 +49,7 @@ public class BookController {
         this.publisherRepository = publisherRepository;
     }
 
-    // ================== 🔥 SEARCH API ==================
+    // ==================  SEARCH API ==================
     @GetMapping("/search")
     public List<Book> search(@RequestParam String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
