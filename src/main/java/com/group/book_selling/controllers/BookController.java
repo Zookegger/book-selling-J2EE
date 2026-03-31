@@ -30,6 +30,11 @@ import com.group.book_selling.utils.SlugUtils;
 
 import jakarta.validation.Valid;
 
+/**
+ * API CRUD co ban cho sach.
+ *
+ * <p>Controller nay xu ly map id tac gia/danh muc/nha xuat ban thanh entity truoc khi luu.</p>
+ */
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
