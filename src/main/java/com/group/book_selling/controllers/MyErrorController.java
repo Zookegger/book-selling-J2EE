@@ -1,8 +1,6 @@
 package com.group.book_selling.controllers;
 
 import org.springframework.boot.webmvc.error.ErrorController;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,21 +12,9 @@ import jakarta.servlet.http.HttpServletRequest;
 public class MyErrorController implements ErrorController {
 
     @RequestMapping("/error")
-    public Object handleError(HttpServletRequest request, Model model) {
-
-        String path = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
-
-        // Nếu là API → trả JSON
-        if (path != null && path.startsWith("/api")) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body("API not found: " + path);
-        }
-
-        // phần xử lý cho giao diện (HTML)
+    public String handleError(HttpServletRequest request, Model model) {
         Object statusObj = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Integer statusCode = null;
-
         if (statusObj != null) {
             try {
                 statusCode = Integer.valueOf(statusObj.toString());
@@ -44,6 +30,8 @@ public class MyErrorController implements ErrorController {
                 message = ex.toString();
             }
         }
+
+        String path = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
 
         model.addAttribute("status", statusCode);
         model.addAttribute("errorMessage", message == null ? "Đã xảy ra lỗi" : message);
