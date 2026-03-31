@@ -27,4 +27,28 @@ public class UserServices {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public void prepareEmailVerification(User user) {
+        String token = java.util.UUID.randomUUID().toString();
+        user.setEmailVerificationToken(token);
+        user.setEmailVerificationExpires(java.time.LocalDateTime.now().plusHours(1));
+    }
+
+    public boolean verifyEmailToken(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
+        User user = userRepository.findByEmailVerificationToken(token);
+        if (user == null) {
+            return false;
+        }
+        if (user.getEmailVerificationExpires() == null || user.getEmailVerificationExpires().isBefore(java.time.LocalDateTime.now())) {
+            return false;
+        }
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        user.setEmailVerificationExpires(null);
+        userRepository.save(user);
+        return true;
+    }
 }

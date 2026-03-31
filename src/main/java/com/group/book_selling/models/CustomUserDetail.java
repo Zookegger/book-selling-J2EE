@@ -55,4 +55,9 @@ public class CustomUserDetail implements UserDetails {
     public boolean isAccountNonLocked() {
         return UserDetails.super.isAccountNonLocked();
     }
+
+    @Override
+    public boolean isEnabled() {
+        return user.isEmailVerified();
+    }
 }

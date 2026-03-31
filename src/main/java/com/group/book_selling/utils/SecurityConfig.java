@@ -37,12 +37,13 @@ public class SecurityConfig {
         }
 
         @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAuthenticationFailureHandler failureHandler) throws Exception {
                 return http.csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/",
                                                                 "/login",
                                                                 "/register",
+                                                                "/verify-email",
                                                                 "/auth/**",
                                                                 "/error",
                                                                 "/css/**",
@@ -62,6 +63,7 @@ public class SecurityConfig {
                                 .formLogin(form -> form.loginPage("/login")
                                                 .loginProcessingUrl("/login")
                                                 .defaultSuccessUrl("/")
+                                                .failureHandler(failureHandler)
                                                 .permitAll())
                                 .rememberMe(rememberMe -> rememberMe.key("uniqueAndSecret").tokenValiditySeconds(86400)
                                                 .userDetailsService(userDetailsService()))

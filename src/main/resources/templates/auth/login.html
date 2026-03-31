@@ -22,6 +22,15 @@
                         <div th:if="${param.error}" class="alert alert-danger" role="alert">
                             Email hoặc mật khẩu không đúng.
                         </div>
+                        <div th:if="${param.disabled}" class="alert alert-warning" role="alert">
+                            Tài khoản chưa xác thực email. Vui lòng kiểm tra email và xác thực trước khi đăng nhập.
+                        </div>
+                        <div th:if="${registrationMessage}" class="alert alert-success" role="alert">
+                            <span th:text="${registrationMessage}"></span>
+                        </div>
+                        <div th:if="${verifyMessage}" class="alert alert-success" role="alert">
+                            <span th:text="${verifyMessage}"></span>
+                        </div>
                         
                         <form th:action="@{/login}" method="post">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
