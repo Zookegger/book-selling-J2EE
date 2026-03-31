@@ -11,10 +11,9 @@ import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -32,45 +31,38 @@ class BookControllerTest {
 
     private MockMvc mockMvc;
 
-        @Mock
+    @Mock
     private IBookRepository bookRepository;
 
-        @Mock
+    @Mock
     private IAuthorRepository authorRepository;
 
-        @Mock
+    @Mock
     private ICategoryRepository categoryRepository;
 
-        @Mock
+    @Mock
     private IPublisherRepository publisherRepository;
 
-        @BeforeEach
-        void setUp() {
-                BookController controller = new BookController(bookRepository, authorRepository, categoryRepository, publisherRepository);
-                this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-        }
+    @BeforeEach
+    void setUp() {
+        BookController controller = new BookController(bookRepository, authorRepository, categoryRepository, publisherRepository);
+        this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
 
     @Test
     void create_withInvalidPublisherId_returns400() throws Exception {
         when(publisherRepository.findById(999L)).thenReturn(Optional.empty());
 
-        String body = """
-                {
-                  "title": "Toi thay hoa vang tren co xanh",
-                  "description": "Noi dung mo ta",
-                  "publicationDate": "2010-01-01",
-                  "publisherId": 999
-                }
-                """;
-
-        mockMvc.perform(post("/api/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+        mockMvc.perform(post("/books/new")
+                .param("title", "Toi thay hoa vang tren co xanh")
+                .param("description", "Noi dung mo ta")
+                .param("publicationDate", "2010-01-01")
+                .param("publisherId", "999"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void create_withValidRelations_returns201() throws Exception {
+    void create_withValidRelations_redirectsToBookDetail() throws Exception {
         Publisher publisher = Publisher.builder()
                 .id(1L)
                 .name("NXB Tre")
@@ -104,25 +96,14 @@ class BookControllerTest {
             return saved;
         });
 
-        String body = """
-                {
-                  "title": "Cho toi xin mot ve di tuoi tho",
-                  "description": "Noi dung sach",
-                  "publicationDate": "2008-01-01",
-                  "publisherId": 1,
-                  "authorIds": [2],
-                  "categoryIds": [3]
-                }
-                """;
-
-        mockMvc.perform(post("/api/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(99))
-                .andExpect(jsonPath("$.slug").value("cho-toi-xin-mot-ve-di-tuoi-tho"))
-                .andExpect(jsonPath("$.publisher.id").value(1))
-                .andExpect(jsonPath("$.authors[0].id").value(2))
-                .andExpect(jsonPath("$.categories[0].id").value(3));
+        mockMvc.perform(post("/books/new")
+                .param("title", "Cho toi xin mot ve di tuoi tho")
+                .param("description", "Noi dung sach")
+                .param("publicationDate", "2008-01-01")
+                .param("publisherId", "1")
+                .param("authorIds", "2")
+                .param("categoryIds", "3"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/books/cho-toi-xin-mot-ve-di-tuoi-tho"));
     }
 }
