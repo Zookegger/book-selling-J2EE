@@ -17,7 +17,7 @@ public interface IBookRepository extends JpaRepository<Book, Long> {
     // Tìm theo ISBN
     Optional<Book> findByIsbn(String isbn);
 
-    // 🔥 SEARCH FUNCTION
+    // SEARCH FUNCTION
     @Query("""
         SELECT DISTINCT b FROM Book b
         LEFT JOIN b.authors a
