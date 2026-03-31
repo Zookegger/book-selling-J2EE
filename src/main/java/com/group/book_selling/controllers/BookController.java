@@ -54,7 +54,6 @@ public class BookController {
         this.publisherRepository = publisherRepository;
     }
 
-    // ==================  SEARCH API ==================
     @GetMapping("/search")
     public List<Book> search(@RequestParam String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -62,8 +61,6 @@ public class BookController {
         }
         return bookRepository.searchBooks(keyword);
     }
-
-    // ================== CRUD ==================
 
     @GetMapping
     public List<Book> findAll() {
