@@ -28,4 +28,11 @@ public interface IBookRepository extends JpaRepository<Book, Long> {
         OR LOWER(p.name) LIKE LOWER(CONCAT('%',:keyword,'%'))
     """)
     List<Book> searchBooks(@Param("keyword") String keyword);
+
+    // Tìm sách theo danh sách ID thể loại
+    @Query("SELECT DISTINCT b FROM Book b JOIN b.categories c WHERE c.id IN :categoryIds")
+    List<Book> findDistinctByCategories_IdIn(@Param("categoryIds") List<Long> categoryIds);
+
+    // Số lượng sách theo thể loại
+    long countByCategories_Id(Long categoryId);
 }
