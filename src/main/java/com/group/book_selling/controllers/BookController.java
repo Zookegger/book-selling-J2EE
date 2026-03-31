@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,11 +30,6 @@ import com.group.book_selling.utils.SlugUtils;
 
 import jakarta.validation.Valid;
 
-/**
- * API CRUD co ban cho sach.
- *
- * <p>Controller nay xu ly map id tac gia/danh muc/nha xuat ban thanh entity truoc khi luu.</p>
- */
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
@@ -53,20 +49,28 @@ public class BookController {
         this.publisherRepository = publisherRepository;
     }
 
-    /** Lay danh sach sach. */
+    // ================== 🔥 SEARCH API ==================
+    @GetMapping("/search")
+    public List<Book> search(@RequestParam String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return bookRepository.findAll();
+        }
+        return bookRepository.searchBooks(keyword);
+    }
+
+    // ================== CRUD ==================
+
     @GetMapping
     public List<Book> findAll() {
         return bookRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
     }
 
-    /** Lay chi tiet sach theo id. */
     @GetMapping("/{id}")
     public Book findById(@PathVariable Long id) {
         return bookRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay sach"));
     }
 
-    /** Tao moi sach. */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Book create(@Valid @RequestBody BookRequest request) {
@@ -75,7 +79,6 @@ public class BookController {
         return bookRepository.save(book);
     }
 
-    /** Cap nhat thong tin sach. */
     @PutMapping("/{id}")
     public Book update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         Book existing = bookRepository.findById(id)
@@ -85,7 +88,6 @@ public class BookController {
         return bookRepository.save(existing);
     }
 
-    /** Xoa sach theo id. */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
@@ -94,6 +96,8 @@ public class BookController {
         }
         bookRepository.deleteById(id);
     }
+
+    // ================== HELPER ==================
 
     private void applyRequestToBook(Book target, BookRequest request) {
         target.setTitle(request.title());
