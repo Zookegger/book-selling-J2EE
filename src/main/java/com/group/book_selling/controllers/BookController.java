@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.group.book_selling.models.Author;
@@ -35,8 +36,8 @@ import jakarta.validation.Valid;
  *
  * <p>Controller nay xu ly map id tac gia/danh muc/nha xuat ban thanh entity truoc khi luu.</p>
  */
-@RestController
-@RequestMapping("/api/books")
+@Controller
+@RequestMapping("/books")
 public class BookController {
 
     private final IBookRepository bookRepository;
@@ -56,11 +57,19 @@ public class BookController {
 
     /** Tim kiem sach theo keyword */
     @GetMapping("/search")
-    public List<Book> search(@RequestParam String keyword) {
+    public String search(@RequestParam(required = false) String keyword, Model model) {
+        List<Book> books;
+        
         if (keyword == null || keyword.trim().isEmpty()) {
-            return bookRepository.findAll();
+            books = bookRepository.findAll();
+        } else {
+            books = bookRepository.searchBooks(keyword);
         }
-        return bookRepository.searchBooks(keyword);
+
+        model.addAttribute("books", books);
+        model.addAttribute("keyword", keyword);
+
+        return "search";
     }
     
     /** Lay danh sach sach. */
