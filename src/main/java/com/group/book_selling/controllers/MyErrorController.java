@@ -18,14 +18,14 @@ public class MyErrorController implements ErrorController {
 
         String path = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
 
-        // 🔥 Nếu là API → trả JSON
+        // Nếu là API → trả JSON
         if (path != null && path.startsWith("/api")) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body("API not found: " + path);
         }
 
-        // 👇 phần xử lý cho giao diện (HTML)
+        // phần xử lý cho giao diện (HTML)
         Object statusObj = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Integer statusCode = null;
 
