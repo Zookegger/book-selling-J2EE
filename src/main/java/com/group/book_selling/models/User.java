@@ -38,37 +38,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class Address {
-
-    @NotBlank
-    private String recipientName;
-
-    @NotBlank
-    @Pattern(regexp = "^[0-9+\\-\\s]{8,}$", message = "Not a valid phone number!")
-    private String phoneNumber;
-
-    @NotBlank
-    private String provinceOrCity;
-    @NotBlank
-    private String district;
-    @NotBlank
-    private String ward;
-    @NotBlank
-    private String streetDetails;
-
-    @Builder.Default
-    private String country = "Vietnam";
-
-    @Builder.Default
-    private boolean isDefault = false;
-}
-
-@Embeddable
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 class WishlistItem {
 
     @NotNull
@@ -127,6 +96,13 @@ public class User {
     @Column(nullable = false)
     private String lastName;
 
+    @Pattern(regexp = "^[0-9+\\-\\s]{8,}$|^$", message = "Not a valid phone number!")
+    @Column(length = 20)
+    private String phoneNumber;
+
+    @Column(columnDefinition = "TEXT")
+    private String profilePictureUrl;
+
     @NotBlank
     @Column(nullable = false)
     private String password;
@@ -149,6 +125,37 @@ public class User {
     @CollectionTable(name = "user_addresses", joinColumns = @JoinColumn(name = "user_id"))
     @Builder.Default
     private List<Address> addresses = new ArrayList<>();
+
+    @Embeddable
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Address {
+
+        @NotBlank
+        private String recipientName;
+
+        @NotBlank
+        @Pattern(regexp = "^[0-9+\\-\\s]{8,}$", message = "Not a valid phone number!")
+        private String phoneNumber;
+
+        @NotBlank
+        private String provinceOrCity;
+        @NotBlank
+        private String district;
+        @NotBlank
+        private String ward;
+        @NotBlank
+        private String streetDetails;
+
+        @Builder.Default
+        private String country = "Vietnam";
+
+        @Builder.Default
+        private boolean isDefault = false;
+    }
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_wishlist", joinColumns = @JoinColumn(name = "user_id"))
