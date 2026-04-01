@@ -51,4 +51,33 @@ public class UserServices {
         userRepository.save(user);
         return true;
     }
+
+    public void preparePasswordReset(User user) {
+        String token = java.util.UUID.randomUUID().toString();
+        user.setPasswordResetToken(token);
+        user.setPasswordResetExpires(java.time.LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+    }
+
+    public User findByPasswordResetToken(String token) {
+        return userRepository.findByPasswordResetToken(token);
+    }
+
+    public boolean resetPassword(String token, String newPassword) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
+        User user = userRepository.findByPasswordResetToken(token);
+        if (user == null) {
+            return false;
+        }
+        if (user.getPasswordResetExpires() == null || user.getPasswordResetExpires().isBefore(java.time.LocalDateTime.now())) {
+            return false;
+        }
+        user.setPassword(newPassword);
+        user.setPasswordResetToken(null);
+        user.setPasswordResetExpires(null);
+        userRepository.save(user);
+        return true;
+    }
 }

@@ -5,6 +5,7 @@
 
 package com.group.book_selling.controllers;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +99,95 @@ public class AuthController {
         } else {
             redirectAttributes.addFlashAttribute("verifyMessage", "Liên kết xác thực không hợp lệ hoặc đã hết hạn.");
         }
+        return "redirect:/login";
+    }
+
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "auth/forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String handleForgotPassword(@RequestParam("email") String email, HttpServletRequest request,
+            RedirectAttributes redirectAttributes) {
+        if (email == null || email.isBlank()) {
+            redirectAttributes.addFlashAttribute("resetErrorMessage", "Vui lòng nhập email.");
+            return "redirect:/forgot-password";
+        }
+
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("resetRequestMessage",
+                    "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn thay đổi mật khẩu trong vài phút.");
+            return "redirect:/login";
+        }
+
+        userService.preparePasswordReset(user);
+        String resetUrl = ServletUriComponentsBuilder.fromRequestUri(request)
+                .replacePath("/reset-password")
+                .replaceQuery(null)
+                .queryParam("token", user.getPasswordResetToken())
+                .build()
+                .toUriString();
+
+        String fullName = (user.getFirstName() == null ? "" : user.getFirstName().trim())
+                + (user.getLastName() == null ? "" : " " + user.getLastName().trim());
+        String message = EmailTemplate.passwordResetEmailTemplate(fullName.trim(), resetUrl);
+        try {
+            emailService.sendHtmlMessage(user.getEmail(), "Yêu cầu đặt lại mật khẩu", message);
+            redirectAttributes.addFlashAttribute("resetRequestMessage",
+                    "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn thay đổi mật khẩu trong vài phút.");
+            return "redirect:/login";
+        } catch (RuntimeException ex) {
+            redirectAttributes.addFlashAttribute("resetErrorMessage", "Không thể gửi email. Vui lòng thử lại sau.");
+            return "redirect:/forgot-password";
+        }
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam("token") String token, Model model,
+            RedirectAttributes redirectAttributes) {
+        if (token == null || token.isBlank()) {
+            redirectAttributes.addFlashAttribute("resetErrorMessage", "Liên kết không hợp lệ.");
+            return "redirect:/login";
+        }
+
+        User user = userService.findByPasswordResetToken(token);
+        if (user == null || user.getPasswordResetExpires() == null
+                || user.getPasswordResetExpires().isBefore(LocalDateTime.now())) {
+            redirectAttributes.addFlashAttribute("resetErrorMessage",
+                    "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+            return "redirect:/login";
+        }
+
+        model.addAttribute("token", token);
+        return "auth/reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String handleResetPassword(@RequestParam("token") String token,
+            @RequestParam("password") String password,
+            @RequestParam("confirmPassword") String confirmPassword,
+            Model model, RedirectAttributes redirectAttributes) {
+        if (token == null || token.isBlank()) {
+            redirectAttributes.addFlashAttribute("resetErrorMessage", "Liên kết không hợp lệ.");
+            return "redirect:/login";
+        }
+        if (password == null || password.isBlank() || !password.equals(confirmPassword)) {
+            model.addAttribute("token", token);
+            model.addAttribute("passwordError", "Mật khẩu và xác nhận phải khớp và không được để trống.");
+            return "auth/reset-password";
+        }
+
+        boolean resetSuccessful = userService.resetPassword(token, password);
+        if (!resetSuccessful) {
+            redirectAttributes.addFlashAttribute("resetErrorMessage",
+                    "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+            return "redirect:/login";
+        }
+
+        redirectAttributes.addFlashAttribute("resetPasswordMessage",
+                "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập với mật khẩu mới.");
         return "redirect:/login";
     }
 }
