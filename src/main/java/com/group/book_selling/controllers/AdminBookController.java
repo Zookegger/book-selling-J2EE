@@ -12,15 +12,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.group.book_selling.models.Book;
 import com.group.book_selling.repository.IBookRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Controller
 @RequestMapping("/admin/books")
+@RequiredArgsConstructor
 public class AdminBookController {
 
     private final IBookRepository bookRepository;
-
-    public AdminBookController(IBookRepository bookRepository) {
-        this.bookRepository = bookRepository;
-    }
 
     @GetMapping
     public String list(@RequestParam(required = false) String keyword, Model model) {

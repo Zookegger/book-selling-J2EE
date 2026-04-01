@@ -20,6 +20,7 @@ import com.group.book_selling.repository.IAuthorRepository;
 import com.group.book_selling.utils.SlugUtils;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 /**
  * API co ban de quan ly tac gia.
@@ -28,14 +29,11 @@ import jakarta.validation.Valid;
  */
 @RestController
 @RequestMapping("/api/authors")
+@RequiredArgsConstructor
 public class AuthorController {
 
     private final IAuthorRepository authorRepository;
-
-    public AuthorController(IAuthorRepository authorRepository) {
-        this.authorRepository = authorRepository;
-    }
-
+    
     /** Lay danh sach tac gia. */
     @GetMapping
     public List<Author> findAll() {

@@ -1,0 +1,27 @@
+<th:block th:fragment="deleteAccountModal" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Xác nhận xóa tài khoản</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/profile/delete-account}" method="post" th:object="${deleteAccountForm}">
+                    <div class="modal-body">
+                        <p>Bạn có chắc chắn muốn xóa tài khoản?</p>
+                        <div class="mb-3">
+                            <label for="deleteAccountPassword">Nhập mật khẩu để xác nhận</label>
+                            <input type="password" id="deleteAccountPassword" th:field="*{password}" class="form-control">
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasGlobalErrors()}" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Hủy</button>
+                        <button class="btn btn-danger" type="submit">Xóa vĩnh viễn</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</th:block>
