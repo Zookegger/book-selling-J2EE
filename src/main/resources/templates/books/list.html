@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Danh sách sách - LuminaBook</title>
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-xl flex-grow-1 py-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+            <div>
+                <h1 class="h3 mb-1">Danh sách sách</h1>
+                <p class="text-muted mb-0" th:text="${keyword != null and !keyword.isEmpty()} ? 'Kết quả tìm kiếm cho: ' + keyword : 'Tất cả sách'"></p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/books/new}"><i class="fa fa-plus me-1"></i> Thêm sách</a>
+        </div>
+
+        <form class="row g-3 mb-4" th:action="@{/books}" method="get">
+            <div class="col-md-8">
+                <input type="text" name="keyword" th:value="${keyword}" class="form-control" placeholder="Tìm ISBN, tên sách, tác giả hoặc nhà xuất bản" />
+            </div>
+            <div class="col-md-auto d-flex gap-2">
+                <button class="btn btn-outline-primary">Tìm kiếm</button>
+                <a class="btn btn-outline-secondary" th:href="@{/books}">Xóa</a>
+            </div>
+        </form>
+
+        <div th:if="${books.isEmpty()}">
+            <div class="alert alert-info">Không tìm thấy sách nào.</div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-lg-2 g-4" th:if="${!books.isEmpty()}">
+            <div class="col" th:each="book : ${books}">
+                <div class="card h-100 shadow-sm">
+                    <div class="row g-0">
+                        <div class="col-12 col-sm-4">
+                            <div class="h-100 bg-light d-flex align-items-center justify-content-center" style="min-height: 180px;">
+                                <img th:if="${book.coverImage != null and !book.coverImage.isBlank()}" th:src="${book.coverImage}"
+                                    class="img-fluid h-100 w-100 object-fit-cover" alt="Ảnh bìa sách" />
+                                <div th:if="${book.coverImage == null or book.coverImage.isBlank()}" class="text-muted px-3 text-center">
+                                    Không có ảnh bìa
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-8">
+                            <div class="card-body d-flex flex-column h-100">
+                                <h5 class="card-title" th:text="${book.title}"></h5>
+                                <p class="text-muted mb-2" th:text="${book.subtitle}"></p>
+                                <p class="mb-2"><strong>ISBN:</strong> <span th:text="${book.isbn}"></span></p>
+                                <p class="text-truncate mb-3" th:text="${book.description}"></p>
+                                <div class="mt-auto d-flex flex-column flex-sm-row gap-2">
+                                    <a th:href="@{/books/{slug}(slug=${book.slug})}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                    <a th:href="@{/books/{slug}/edit(slug=${book.slug})}" class="btn btn-sm btn-secondary">Sửa</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+
+</html>
