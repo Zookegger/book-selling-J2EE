@@ -19,7 +19,7 @@ import com.group.book_selling.repository.IUserRepository;
 public class UserServices {
     @Autowired
     private IUserRepository userRepository;
-    
+
     public void save(User user) {
         userRepository.save(user);
     }
@@ -28,10 +28,15 @@ public class UserServices {
         return userRepository.findByEmail(email);
     }
 
+    private void setEmailVerification(User user, String token, java.time.LocalDateTime expires) {
+        user.setEmailVerificationToken(token);
+        user.setEmailVerificationExpires(expires);
+        userRepository.save(user);
+    }
+
     public void prepareEmailVerification(User user) {
         String token = java.util.UUID.randomUUID().toString();
-        user.setEmailVerificationToken(token);
-        user.setEmailVerificationExpires(java.time.LocalDateTime.now().plusHours(1));
+        setEmailVerification(user, token, java.time.LocalDateTime.now().plusHours(1));
     }
 
     public boolean verifyEmailToken(String token) {
@@ -42,21 +47,18 @@ public class UserServices {
         if (user == null) {
             return false;
         }
-        if (user.getEmailVerificationExpires() == null || user.getEmailVerificationExpires().isBefore(java.time.LocalDateTime.now())) {
+        if (user.getEmailVerificationExpires() == null
+                || user.getEmailVerificationExpires().isBefore(java.time.LocalDateTime.now())) {
             return false;
         }
         user.setEmailVerified(true);
-        user.setEmailVerificationToken(null);
-        user.setEmailVerificationExpires(null);
-        userRepository.save(user);
+        setEmailVerification(user, null, null);
         return true;
     }
 
     public void preparePasswordReset(User user) {
         String token = java.util.UUID.randomUUID().toString();
-        user.setPasswordResetToken(token);
-        user.setPasswordResetExpires(java.time.LocalDateTime.now().plusHours(1));
-        userRepository.save(user);
+        setEmailVerification(user, token, user.getPasswordResetExpires());
     }
 
     public User findByPasswordResetToken(String token) {
@@ -71,13 +73,12 @@ public class UserServices {
         if (user == null) {
             return false;
         }
-        if (user.getPasswordResetExpires() == null || user.getPasswordResetExpires().isBefore(java.time.LocalDateTime.now())) {
+        if (user.getPasswordResetExpires() == null
+                || user.getPasswordResetExpires().isBefore(java.time.LocalDateTime.now())) {
             return false;
         }
         user.setPassword(newPassword);
-        user.setPasswordResetToken(null);
-        user.setPasswordResetExpires(null);
-        userRepository.save(user);
+        setEmailVerification(user, null, null);
         return true;
     }
 }
