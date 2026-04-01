@@ -35,4 +35,7 @@ public interface IBookRepository extends JpaRepository<Book, Long> {
 
     // Số lượng sách theo thể loại
     long countByCategories_Id(Long categoryId);
+
+    // Sách phổ biến (mới nhất) theo thể loại
+    List<Book> findTop5ByCategories_IdOrderByCreatedAtDesc(Long categoryId);
 }
