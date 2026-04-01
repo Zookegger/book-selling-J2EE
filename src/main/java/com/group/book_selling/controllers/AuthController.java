@@ -29,11 +29,14 @@ import com.group.book_selling.template.EmailTemplate;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
  * @author Nguyen Duc Trung
  */
+@Slf4j // Sử dụng Lombok để tạo logger
+
 @Controller
 public class AuthController {
     @Autowired
@@ -50,7 +53,6 @@ public class AuthController {
 
     @GetMapping("/register")
     public String registerPage() {
-
         return "auth/register";
     }
 
@@ -82,7 +84,7 @@ public class AuthController {
         String message = EmailTemplate.verificationEmailTemplate(fullName.trim(), verificationUrl);
         emailService.sendHtmlMessage(user.getEmail(), "Xác thực email", message)
                 .exceptionally(ex -> {
-                    ex.printStackTrace();
+                    log.error("Lỗi khi gửi email xác thực cho {}", user.getEmail(), ex);
                     return null;
                 });
 
@@ -100,31 +102,31 @@ public class AuthController {
         }
 
         User user = userService.findByEmail(email);
-        if (user == null) {
+        if (user != null) {
             redirectAttributes.addFlashAttribute("resetRequestMessage", "Email không tồn tại.");
-            return "redirect:/login";
+
+            userService.prepareEmailVerification(user);
+            String verificationUrl = ServletUriComponentsBuilder.fromRequestUri(request)
+                    .replacePath("/verify-email")
+                    .replaceQuery(null)
+                    .queryParam("token", user.getEmailVerificationToken())
+                    .build()
+                    .toUriString();
+
+            String fullName = (user.getFirstName() == null ? "" : user.getFirstName().trim())
+                    + (user.getLastName() == null ? "" : " " + user.getLastName().trim());
+            String message = EmailTemplate.verificationEmailTemplate(fullName.trim(), verificationUrl);
+
+            emailService.sendHtmlMessage(user.getEmail(), "Xác thực email", message)
+                    .exceptionally(ex -> {
+                        log.error("Lỗi khi gửi email xác thực lại cho {}: {}", email, ex.getMessage());
+                        return null;
+                    });
         }
 
-        userService.prepareEmailVerification(user);
-        String verificationUrl = ServletUriComponentsBuilder.fromRequestUri(request)
-                .replacePath("/verify-email")
-                .replaceQuery(null)
-                .queryParam("token", user.getEmailVerificationToken())
-                .build()
-                .toUriString();
+        redirectAttributes.addFlashAttribute("resetRequestMessage",
+                "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi lại liên kết xác thực. Vui lòng kiểm tra email của bạn.");
 
-        String fullName = (user.getFirstName() == null ? "" : user.getFirstName().trim())
-                + (user.getLastName() == null ? "" : " " + user.getLastName().trim());
-        String message = EmailTemplate.verificationEmailTemplate(fullName.trim(), verificationUrl);
-
-        emailService.sendHtmlMessage(user.getEmail(), "Xác thực email", message)
-                .exceptionally(ex -> {
-                    // log the error — you can't redirect from here
-                    ex.printStackTrace();
-                    return null;
-                });
-        redirectAttributes.addFlashAttribute("registrationMessage",
-                "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.");
         return "redirect:/login";
     }
 
@@ -174,7 +176,7 @@ public class AuthController {
         emailService.sendHtmlMessage(user.getEmail(), "Yêu cầu đặt lại mật khẩu", message)
                 .exceptionally(ex -> {
                     // log the error — you can't redirect from here
-                    ex.printStackTrace();
+                    log.error("Lỗi khi gửi email xác thực lại cho {}: {}", email, ex.getMessage());
                     return null;
                 });
 

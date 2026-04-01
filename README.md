@@ -12,8 +12,6 @@ Một ứng dụng web bán sách mẫu xây dựng bằng Spring Boot, Thymelea
 - **Quản trị**: Giao diện quản trị để quản lý sách/tác giả/thể loại (nếu bật các route admin).
 - **Gửi email**: Hệ thống hỗ trợ gửi email (dùng Spring Mail) cho xác thực email.
 
-> Lưu ý: chức năng phục hồi mật khẩu (password recovery / reset) hiện **chưa được triển khai** trong mã nguồn.
-
 ---
 
 ## Công nghệ
