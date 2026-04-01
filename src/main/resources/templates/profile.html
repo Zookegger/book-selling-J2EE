@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+    <title>Hồ sơ người dùng - LuminaBook</title>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+<main class="container-xl flex-grow-1">
+
+    <!-- Flash Message -->
+    <div th:if="${successMessage}" class="alert alert-success mt-3">
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger mt-3">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Header -->
+    <div class="profile-header text-white p-4 mb-4"
+         style="background: linear-gradient(135deg, #667eea, #764ba2);">
+
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center position-relative">
+                <div style="width:120px;height:120px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto;">
+                    <img th:if="${user.profilePictureUrl}" 
+                         th:src="${user.profilePictureUrl}"
+                         style="width:100%;height:100%;object-fit:cover;"
+                         alt="Avatar">
+                    <i th:if="!${user.profilePictureUrl}" class="bi bi-person-fill fs-1 text-primary"></i>
+                </div>
+                <button type="button" class="btn btn-sm btn-light mt-2" data-bs-toggle="modal" data-bs-target="#uploadAvatarModal">
+                    <i class="bi bi-pencil"></i> Sửa ảnh
+                </button>
+            </div>
+
+            <div class="col-md-9">
+                <h3 th:text="${user.firstName + ' ' + user.lastName}"></h3>
+
+                <p>
+                    <i class="bi bi-envelope"></i>
+                    <span th:text="${user.email}"></span>
+                </p>
+
+                <p th:if="${user.phoneNumber != null}">
+                    <i class="bi bi-telephone"></i>
+                    <span th:text="${user.phoneNumber}"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#personal">
+                Thông tin cá nhân
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#addresses">
+                Địa chỉ
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#security">
+                <i class="bi bi-shield-lock"></i> Bảo mật
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content bg-white p-4 shadow-sm">
+
+        <!-- TAB 1 -->
+        <div class="tab-pane fade show active" id="personal">
+            <form th:action="@{/profile/update-personal}" method="post">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>Họ</label>
+                        <input type="text" name="firstName"
+                               class="form-control"
+                               th:value="${user.firstName}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Tên</label>
+                        <input type="text" name="lastName"
+                               class="form-control"
+                               th:value="${user.lastName}">
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label>Email</label>
+                    <input type="email" class="form-control"
+                           th:value="${user.email}" readonly>
+                </div>
+
+                <div class="mt-3">
+                    <label>SĐT</label>
+                    <input type="text" name="phone"
+                           class="form-control"
+                           th:value="${user.phoneNumber}">
+                </div>
+
+                <button class="btn btn-primary mt-3">Cập nhật</button>
+            </form>
+        </div>
+
+        <!-- TAB 2 -->
+
+    <div class="tab-pane fade" id="addresses">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0">Địa chỉ giao hàng</h5>
+        <button type="button" class="btn btn-primary btn-sm"
+                data-bs-toggle="modal" data-bs-target="#addAddressModal">
+            <i class="bi bi-plus-circle"></i> Thêm địa chỉ
+        </button>
+    </div>
+    <!-- LIST ADDRESS -->
+    <div th:if="${user.addresses != null and user.addresses.size() > 0}">
+        <div th:each="address,iterStat : ${user.addresses}"
+            class="mb-3 border p-3 rounded shadow-sm">
+            <div class="d-flex justify-content-between align-items-start">
+                <!-- LEFT CONTENT -->
+                <div>
+                    <h6 class="mb-2 fw-bold" th:text="${address.recipientName}"></h6>
+                    <p class="mb-1 text-muted">
+                        <i class="bi bi-telephone"></i>
+                        <span th:text="${address.phoneNumber}"></span>
+                    </p>
+                    <p class="mb-0 small text-muted"
+                    th:text="${address.streetDetails + ', ' + address.ward + ', ' + address.district + ', ' + address.provinceOrCity}">
+                    </p>
+                </div>
+                <!-- RIGHT ACTION -->
+                <div class="text-end">
+                    <!-- ICON BUTTON -->
+                    <div class="d-flex gap-2 justify-content-end mb-2">
+                        <!-- EDIT -->
+                        <button type="button"
+                                class="btn btn-sm btn-light border rounded-circle"
+                                style="width:35px;height:35px;"
+                                th:onclick="|editAddress(${iterStat.index})|"
+                                data-bs-toggle="modal" data-bs-target="#editAddressModal"
+                                title="Sửa">
+                            <i class="bi bi-pencil-fill text-warning"></i>
+                        </button>
+                        <!-- DELETE -->
+                        <button type="button"
+                                class="btn btn-sm btn-light border rounded-circle"
+                                style="width:35px;height:35px;"
+                                th:onclick="|deleteAddress(${iterStat.index})|"
+                                title="Xóa">
+                            <i class="bi bi-trash-fill text-danger"></i>
+                        </button>
+                    </div>
+                    <!-- DEFAULT -->
+                    <div th:if="${address.isDefault}" class="badge bg-success">
+                        Địa chỉ mặc định
+                    </div>
+                    <button th:unless="${address.isDefault}"
+                            class="btn btn-sm btn-outline-secondary mt-1"
+                            th:onclick="|setDefaultAddress(${iterStat.index})|">
+                        Đặt làm mặc định
+                    </button>
+                </div>
+            </div>
+        </div>
+        </div>
+        <!-- EMPTY -->
+        <div th:if="${user.addresses == null or user.addresses.size() == 0}">
+            <p class="text-muted">
+                Chưa có địa chỉ nào
+                <a href="#" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                </a>
+            </p>
+        </div>
+        </div>
+
+        <!-- TAB 3 - Bảo mật -->
+        <div class="tab-pane fade" id="security">
+            <h5 class="mb-4">Đổi mật khẩu</h5>
+            <form th:action="@{/profile/change-password}" method="post" id="changePasswordForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('currentPassword')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="newPassword" name="newPassword" required 
+                                       onkeyup="validatePassword()">
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('newPassword')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('confirmPassword')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="d-block">
+                        <div id="passwordRequirements" class="text-muted">
+                            <i class="bi bi-info-circle"></i> Mật khẩu phải có:
+                            <div class="ms-3 mt-1">
+                                <span id="reqLength"><i class="bi bi-circle"></i> Ít nhất 6 ký tự</span><br>
+                                <span id="reqUpper"><i class="bi bi-circle"></i> Chữ hoa (A-Z)</span><br>
+                                <span id="reqLower"><i class="bi bi-circle"></i> Chữ thường (a-z)</span><br>
+                                <span id="reqDigit"><i class="bi bi-circle"></i> Số (0-9)</span>
+                            </div>
+                        </div>
+                    </small>
+                </div>
+
+                <div class="d-flex gap-3 mt-3">
+
+    <!-- Đổi mật khẩu -->
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-lock"></i> Đổi mật khẩu
+    </button>
+
+    <!-- Xóa tài khoản -->
+    <button type="button"
+            class="btn btn-danger"
+            data-bs-toggle="modal"
+            data-bs-target="#deleteAccountModal">
+        <i class="bi bi-trash"></i> Xóa tài khoản
+    </button>
+
+</div>
+        </div>
+</main>
+
+<!-- Modal Thêm địa chỉ -->
+<div class="modal fade" id="addAddressModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm địa chỉ mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/profile/add-address}" method="post" id="addAddressForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newRecipientName" class="form-label">Tên người nhận</label>
+                        <input type="text" class="form-control" id="newRecipientName" name="recipientName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPhoneNumber" class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control" id="newPhoneNumber" name="phoneNumber" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newProvinceOrCity" class="form-label">Tỉnh/Thành phố</label>
+                        <select class="form-select" id="newProvinceOrCity" name="provinceOrCity" required onchange="loadDistrictAdd()">
+                            <option value="">-- Chọn tỉnh/thành phố --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newDistrict" class="form-label">Quận/Huyện</label>
+                        <select class="form-select" id="newDistrict" name="district" required onchange="loadWardAdd()">
+                            <option value="">-- Chọn quận/huyện --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newWard" class="form-label">Phường/Xã</label>
+                        <select class="form-select" id="newWard" name="ward" required>
+                            <option value="">-- Chọn phường/xã --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newStreetDetails" class="form-label">Địa chỉ chi tiết</label>
+                        <textarea class="form-control" id="newStreetDetails" name="streetDetails" rows="2" required></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="newIsDefault" name="isDefault">
+                        <label class="form-check-label" for="newIsDefault">Đặt làm địa chỉ mặc định</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Thêm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa địa chỉ -->
+<div class="modal fade" id="editAddressModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sửa địa chỉ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/profile/update-address}" method="post" id="editAddressForm">
+                <input type="hidden" id="editAddressIndex" name="addressIndex">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editRecipientName" class="form-label">Tên người nhận</label>
+                        <input type="text" class="form-control" id="editRecipientName" name="recipientName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPhoneNumber" class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control" id="editPhoneNumber" name="phoneNumber" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProvinceOrCity" class="form-label">Tỉnh/Thành phố</label>
+                        <select class="form-select" id="editProvinceOrCity" name="provinceOrCity" required onchange="loadDistrictEdit()">
+                            <option value="">-- Chọn tỉnh/thành phố --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDistrict" class="form-label">Quận/Huyện</label>
+                        <select class="form-select" id="editDistrict" name="district" required onchange="loadWardEdit()">
+                            <option value="">-- Chọn quận/huyện --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editWard" class="form-label">Phường/Xã</label>
+                        <select class="form-select" id="editWard" name="ward" required>
+                            <option value="">-- Chọn phường/xã --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStreetDetails" class="form-label">Địa chỉ chi tiết</label>
+                        <textarea class="form-control" id="editStreetDetails" name="streetDetails" rows="2" required></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="editIsDefault" name="isDefault">
+                        <label class="form-check-label" for="editIsDefault">Đặt làm địa chỉ mặc định</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Upload Avatar -->
+<div class="modal fade" id="uploadAvatarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cập nhật ảnh đại diện</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/profile/upload-avatar}" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="avatarFile" class="form-label">Chọn ảnh (JPG, PNG, GIF)</label>
+                        <input type="file" class="form-control" id="avatarFile" name="avatarFile" accept="image/*" required>
+                        <small class="text-muted">Kích thước tối đa: 5MB</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Tải lên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Xóa tài khoản -->
+<div class="modal fade" id="deleteAccountModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Xác nhận xóa tài khoản</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/profile/delete-account}" method="post">
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa tài khoản?</p>
+                    <div class="mb-3">
+                        <label>Nhập mật khẩu để xác nhận</label>
+                        <input type="password" name="password"
+                               class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+                        Hủy
+                    </button>
+                    <button class="btn btn-danger">
+                        Xóa vĩnh viễn
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{layout::footer}"></th:block>
+
+<!-- Bootstrap CDN (đảm bảo chạy) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Initialize Province/City Dropdown
+    function initProvinceSelect(selectId) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">-- Chọn tỉnh/thành phố --</option>';
+        Object.keys(vietnamData).forEach(province => {
+            const option = document.createElement('option');
+            option.value = province;
+            option.textContent = province;
+            select.appendChild(option);
+        });
+    }
+
+    // Load Districts for Add Modal
+    function loadDistrictAdd() {
+        const province = document.getElementById('newProvinceOrCity').value;
+        const districtSelect = document.getElementById('newDistrict');
+        const wardSelect = document.getElementById('newWard');
+        
+        districtSelect.innerHTML = '<option value="">-- Chọn quận/huyện --</option>';
+        wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+        
+        if (province && vietnamData[province]) {
+            Object.keys(vietnamData[province]).forEach(district => {
+                const option = document.createElement('option');
+                option.value = district;
+                option.textContent = district;
+                districtSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Load Wards for Add Modal
+    function loadWardAdd() {
+        const province = document.getElementById('newProvinceOrCity').value;
+        const district = document.getElementById('newDistrict').value;
+        const wardSelect = document.getElementById('newWard');
+        
+        wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+        
+        if (province && district && vietnamData[province] && vietnamData[province][district]) {
+            vietnamData[province][district].forEach(ward => {
+                const option = document.createElement('option');
+                option.value = ward;
+                option.textContent = ward;
+                wardSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Load Districts for Edit Modal
+    function loadDistrictEdit() {
+        const province = document.getElementById('editProvinceOrCity').value;
+        const districtSelect = document.getElementById('editDistrict');
+        const wardSelect = document.getElementById('editWard');
+        
+        districtSelect.innerHTML = '<option value="">-- Chọn quận/huyện --</option>';
+        wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+        
+        if (province && vietnamData[province]) {
+            Object.keys(vietnamData[province]).forEach(district => {
+                const option = document.createElement('option');
+                option.value = district;
+                option.textContent = district;
+                districtSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Load Wards for Edit Modal
+    function loadWardEdit() {
+        const province = document.getElementById('editProvinceOrCity').value;
+        const district = document.getElementById('editDistrict').value;
+        const wardSelect = document.getElementById('editWard');
+        
+        wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+        
+        if (province && district && vietnamData[province] && vietnamData[province][district]) {
+            vietnamData[province][district].forEach(ward => {
+                const option = document.createElement('option');
+                option.value = ward;
+                option.textContent = ward;
+                wardSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initProvinceSelect('newProvinceOrCity');
+        initProvinceSelect('editProvinceOrCity');
+    });
+
+    // Toggle password visibility
+    function togglePasswordVisibility(fieldId) {
+        const field = document.getElementById(fieldId);
+        const button = event.target.closest('button');
+        const icon = button.querySelector('i');
+        
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            field.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+    
+    // Validate password requirements real-time
+    function validatePassword() {
+        const password = document.getElementById('newPassword').value;
+        
+        const hasLength = password.length >= 6;
+        const hasUpper = /[A-Z]/.test(password);
+        const hasLower = /[a-z]/.test(password);
+        const hasDigit = /\d/.test(password);
+        
+        // Update UI
+        updateRequirement('reqLength', hasLength);
+        updateRequirement('reqUpper', hasUpper);
+        updateRequirement('reqLower', hasLower);
+        updateRequirement('reqDigit', hasDigit);
+    }
+    
+    // Update requirement display
+    function updateRequirement(elementId, isValid) {
+        const element = document.getElementById(elementId);
+        const icon = element.querySelector('i');
+        
+        if (isValid) {
+            element.classList.remove('text-muted');
+            element.classList.add('text-success', 'fw-bold');
+            icon.classList.remove('bi-circle');
+            icon.classList.add('bi-check-circle-fill');
+        } else {
+            element.classList.remove('text-success', 'fw-bold');
+            element.classList.add('text-muted');
+            icon.classList.remove('bi-check-circle-fill');
+            icon.classList.add('bi-circle');
+        }
+    }
+    
+    // Validate form on submit
+    document.getElementById('changePasswordForm')?.addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (!isStrongPassword(newPassword)) {
+            e.preventDefault();
+            alert('Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số!');
+        } else if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            alert('Mật khẩu xác nhận không khớp!');
+        }
+    });
+    
+    function isStrongPassword(password) {
+        return password.length >= 6 && 
+               /[A-Z]/.test(password) && 
+               /[a-z]/.test(password) && 
+               /\d/.test(password);
+    }
+
+    // Get all addresses from page
+    function getAddresses() {
+        const addressElements = document.querySelectorAll('[data-address-index]');
+        const addresses = [];
+        document.querySelectorAll('.modal-body').forEach((el, idx) => {
+            if (el.parentElement.id === 'editAddressModal' || el.parentElement.id === 'addAddressModal') {
+                return;
+            }
+        });
+        // Note: We'll store addresses in the form submission based on addressIndex parameter
+        return addresses;
+    }
+
+    // Edit address - load data into modal
+    function editAddress(index) {
+        const addressCards = document.querySelectorAll('.border.p-3');
+        if (index >= 0 && index < addressCards.length) {
+            const card = addressCards[index];
+            const recipientName = card.querySelector('h6').textContent;
+            const phoneNumber = card.querySelector('.text-muted').textContent;
+            const addressText = card.querySelector('.small').textContent;
+            
+            // Parse the address - this depends on your address format
+            const parts = addressText.split(', ');
+            
+            document.getElementById('editAddressIndex').value = index;
+            document.getElementById('editRecipientName').value = recipientName;
+            document.getElementById('editPhoneNumber').value = phoneNumber;
+            
+            if (parts.length >= 4) {
+                document.getElementById('editStreetDetails').value = parts[0].trim();
+                document.getElementById('editWard').value = parts[1].trim();
+                document.getElementById('editDistrict').value = parts[2].trim();
+                document.getElementById('editProvinceOrCity').value = parts[3].trim();
+            }
+            
+            const isDefault = card.querySelector('.badge.bg-success');
+            document.getElementById('editIsDefault').checked = !!isDefault;
+        }
+    }
+
+    // Delete address
+    function deleteAddress(index) {
+        if (confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/profile/delete-address';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'addressIndex';
+            input.value = index;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Set default address
+    function setDefaultAddress(index) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/profile/set-default-address';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'addressIndex';
+        input.value = index;
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
+
+<script>
+const API = "https://provinces.open-api.vn/api";
+
+// ================= LOAD PROVINCES =================
+async function loadProvinces(selectId) {
+    const res = await fetch(`${API}/p/`);
+    const data = await res.json();
+
+    const select = document.getElementById(selectId);
+    select.innerHTML = '<option value="">-- Chọn tỉnh/thành phố --</option>';
+
+    data.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.code;
+        option.textContent = p.name;
+        select.appendChild(option);
+    });
+}
+
+// ================= LOAD DISTRICT =================
+async function loadDistrictAdd() {
+    const provinceCode = document.getElementById("newProvinceOrCity").value;
+    const districtSelect = document.getElementById("newDistrict");
+    const wardSelect = document.getElementById("newWard");
+
+    districtSelect.innerHTML = '<option value="">-- Chọn quận/huyện --</option>';
+    wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+
+    if (!provinceCode) return;
+
+    const res = await fetch(`${API}/p/${provinceCode}?depth=2`);
+    const data = await res.json();
+
+    data.districts.forEach(d => {
+        const option = document.createElement("option");
+        option.value = d.code;
+        option.textContent = d.name;
+        districtSelect.appendChild(option);
+    });
+}
+
+// ================= LOAD WARD =================
+async function loadWardAdd() {
+    const districtCode = document.getElementById("newDistrict").value;
+    const wardSelect = document.getElementById("newWard");
+
+    wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+
+    if (!districtCode) return;
+
+    const res = await fetch(`${API}/d/${districtCode}?depth=2`);
+    const data = await res.json();
+
+    data.wards.forEach(w => {
+        const option = document.createElement("option");
+        option.value = w.code;
+        option.textContent = w.name;
+        wardSelect.appendChild(option);
+    });
+}
+
+// ================= EDIT =================
+async function loadDistrictEdit() {
+    const provinceCode = document.getElementById("editProvinceOrCity").value;
+    const districtSelect = document.getElementById("editDistrict");
+
+    districtSelect.innerHTML = '<option value="">-- Chọn quận/huyện --</option>';
+
+    if (!provinceCode) return;
+
+    const res = await fetch(`${API}/p/${provinceCode}?depth=2`);
+    const data = await res.json();
+
+    data.districts.forEach(d => {
+        const option = document.createElement("option");
+        option.value = d.code;
+        option.textContent = d.name;
+        districtSelect.appendChild(option);
+    });
+}
+
+async function loadWardEdit() {
+    const districtCode = document.getElementById("editDistrict").value;
+    const wardSelect = document.getElementById("editWard");
+
+    wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+
+    if (!districtCode) return;
+
+    const res = await fetch(`${API}/d/${districtCode}?depth=2`);
+    const data = await res.json();
+
+    data.wards.forEach(w => {
+        const option = document.createElement("option");
+        option.value = w.code;
+        option.textContent = w.name;
+        wardSelect.appendChild(option);
+    });
+}
+
+// ================= INIT =================
+document.addEventListener("DOMContentLoaded", function () {
+    loadProvinces("newProvinceOrCity");
+    loadProvinces("editProvinceOrCity");
+});
+</script>
+
+</body>
+</html>

@@ -6,6 +6,7 @@
 package com.group.book_selling.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.group.book_selling.models.User;
@@ -86,5 +87,16 @@ public class UserServices {
         user.setPassword(newPassword);
         setPasswordReset(user, null, null);
         return true;
+    }
+
+    public void deleteUser(Long userId) {
+    userRepository.deleteById(userId);
+    }
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public boolean checkPassword(String raw, String encoded) {
+    return passwordEncoder.matches(raw, encoded);
     }
 }
