@@ -103,8 +103,6 @@ public class AuthController {
 
         User user = userService.findByEmail(email);
         if (user != null) {
-            redirectAttributes.addFlashAttribute("resetRequestMessage", "Email không tồn tại.");
-
             userService.prepareEmailVerification(user);
             String verificationUrl = ServletUriComponentsBuilder.fromRequestUri(request)
                     .replacePath("/verify-email")

@@ -8,7 +8,7 @@ Một ứng dụng web bán sách mẫu xây dựng bằng Spring Boot, Thymelea
 
 - **Đăng ký / Đăng nhập**: Người dùng có thể đăng ký, đăng nhập. Có gửi email xác thực sau khi đăng ký.
 - **Danh mục & Sách**: Danh sách sách, trang chi tiết sách, tìm kiếm.
-- **Giỏ hàng**: Trang giỏ hàng (template tại [src/main/resources/templates/cart/cart.html](src/main/resources/templates/cart/cart.html#L1-L200)).
+- **Giỏ hàng**: Trang giỏ hàng (cart page).
 - **Quản trị**: Giao diện quản trị để quản lý sách/tác giả/thể loại (nếu bật các route admin).
 - **Gửi email**: Hệ thống hỗ trợ gửi email (dùng Spring Mail) cho xác thực email.
 
