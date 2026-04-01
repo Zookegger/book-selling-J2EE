@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8" />
@@ -18,59 +18,95 @@
 
         <div class="row g-4">
             <div class="col-lg-4">
-                <div class="card shadow-sm">
+                <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
                         <div class="mb-4">
-                            <img th:if="${book.coverImage != null and !book.coverImage.isBlank()}" th:src="${book.coverImage}"
-                                class="img-fluid" alt="Ảnh bìa sách" />
-                            <div th:if="${book.coverImage == null or book.coverImage.isBlank()}" class="bg-light py-5">
+                            <div th:if="${book.coverImage != null and !book.coverImage.isBlank()}" class="overflow-hidden rounded-4 shadow-sm">
+                                <img th:src="${book.coverImage}" class="img-fluid rounded-4" alt="Ảnh bìa sách" />
+                            </div>
+                            <div th:if="${book.coverImage == null or book.coverImage.isBlank()}"
+                                class="bg-light rounded-4 py-5 d-flex align-items-center justify-content-center">
                                 <span class="text-muted">Không có ảnh bìa</span>
                             </div>
                         </div>
-                        <a class="btn btn-primary w-100 mb-2" th:href="@{/books/{slug}/edit(slug=${book.slug})}">Chỉnh sửa</a>
-                        <form th:action="@{/books/{slug}/delete(slug=${book.slug})}" method="post" class="d-grid">
-                            <button type="submit" class="btn btn-outline-danger">Xóa sách</button>
-                        </form>
+
+                        <div class="text-start">
+                            <p class="text-uppercase text-muted small mb-2">Tác giả</p>
+                            <p class="h6 fw-semibold mb-3" th:text="${book.authors.size() > 0 ? book.authors.get(0).name : 'Không xác định'}"></p>
+
+                            <div class="mb-3">
+                                <span class="badge bg-secondary me-1 mb-1" th:each="category : ${book.categories}"
+                                    th:text="${category.name}"></span>
+                            </div>
+
+                            <div class="rounded-4 bg-light p-3">
+                                <p class="text-uppercase text-muted small mb-2">Nhà xuất bản</p>
+                                <p class="mb-0 fw-semibold"
+                                    th:text="${book.publisher != null ? book.publisher.name : 'Không có'}"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-8">
-                <div class="card shadow-sm">
+                <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <h1 class="h3 mb-3" th:text="${book.title}"></h1>
-                        <p class="text-muted mb-3" th:text="${book.subtitle}"></p>
-                        <p class="mb-3" th:text="${book.description}"></p>
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3 mb-4">
+                            <div>
+                                <h1 class="h3 mb-1" th:text="${book.title}"></h1>
+                                <p class="text-muted mb-0" th:text="${book.subtitle}"></p>
+                            </div>
+                            <div class="text-sm-end">
+                                <span class="badge bg-primary text-uppercase" th:text="${book.language}"></span>
+                            </div>
+                        </div>
 
-                        <dl class="row">
-                            <dt class="col-sm-4">ISBN</dt>
-                            <dd class="col-sm-8" th:text="${book.isbn}"></dd>
+                        <div class="rounded-4 bg-light p-4 mb-4">
+                            <h2 class="h6 text-uppercase text-muted mb-3">Giới thiệu</h2>
+                            <p class="mb-0" th:text="${book.description}"></p>
+                        </div>
 
-                            <dt class="col-sm-4">Ngày xuất bản</dt>
-                            <dd class="col-sm-8" th:text="${book.publicationDate}"></dd>
+                        <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+                            <div class="col">
+                                <div class="p-3 border rounded-4 h-100">
+                                    <p class="text-uppercase text-muted small mb-2">ISBN</p>
+                                    <p class="mb-0 fw-semibold" th:text="${book.isbn}"></p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-3 border rounded-4 h-100">
+                                    <p class="text-uppercase text-muted small mb-2">Ngày xuất bản</p>
+                                    <p class="mb-0 fw-semibold" th:text="${book.publicationDate}"></p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-3 border rounded-4 h-100">
+                                    <p class="text-uppercase text-muted small mb-2">Số trang</p>
+                                    <p class="mb-0 fw-semibold" th:text="${book.pageCount}"></p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-3 border rounded-4 h-100">
+                                    <p class="text-uppercase text-muted small mb-2">Danh mục</p>
+                                    <p class="mb-0" th:each="category, iterStat : ${book.categories}">
+                                        <span th:text="${category.name}"></span><span th:if="${!iterStat.last}">, </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
-                            <dt class="col-sm-4">Ngôn ngữ</dt>
-                            <dd class="col-sm-8" th:text="${book.language}"></dd>
-
-                            <dt class="col-sm-4">Số trang</dt>
-                            <dd class="col-sm-8" th:text="${book.pageCount}"></dd>
-
-                            <dt class="col-sm-4">Nhà xuất bản</dt>
-                            <dd class="col-sm-8" th:text="${book.publisher != null ? book.publisher.name : 'Không có'}"></dd>
-
-                            <dt class="col-sm-4">Tác giả</dt>
+                        <dl class="row gy-3">
+                            <dt class="col-sm-4 text-muted">Tác giả</dt>
                             <dd class="col-sm-8">
-                                <span th:each="author,iterStat : ${book.authors}">
+                                <span th:if="${#lists.isEmpty(book.authors)}">Không xác định</span>
+                                <span th:each="author, iterStat : ${book.authors}">
                                     <span th:text="${author.name}"></span><span th:if="${!iterStat.last}">, </span>
                                 </span>
                             </dd>
 
-                            <dt class="col-sm-4">Danh mục</dt>
-                            <dd class="col-sm-8">
-                                <span th:each="category,iterStat : ${book.categories}">
-                                    <span th:text="${category.name}"></span><span th:if="${!iterStat.last}">, </span>
-                                </span>
-                            </dd>
+                            <dt class="col-sm-4 text-muted">Nhà xuất bản</dt>
+                            <dd class="col-sm-8" th:text="${book.publisher != null ? book.publisher.name : 'Không có'}"></dd>
                         </dl>
                     </div>
                 </div>
