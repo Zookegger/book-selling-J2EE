@@ -12,9 +12,14 @@
     <th:block th:replace="~{layout::header}"></th:block>
 
     <main class="container-xl flex-grow-1 py-5">
-        <div class="mb-4">
-            <h1 class="h3">Sách phổ biến theo thể loại</h1>
-            <p class="text-muted">Xem nhanh những đầu sách hàng đầu trong mỗi thể loại.</p>
+        <div class="d-flex flex-column flex-sm-row justify-content-between mb-4 gap-3">
+            <div>
+                <h1 class="h3">Sách phổ biến theo thể loại</h1>
+                <p class="text-muted">Xem nhanh những đầu sách hàng đầu trong mỗi thể loại.</p>
+            </div>
+            <div>
+                <a href="/books/new" class="btn btn-primary">Thêm sách mới</a>
+            </div>
         </div>
 
         <div th:if="${popularByCategory.isEmpty()}">
