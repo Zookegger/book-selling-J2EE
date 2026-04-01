@@ -29,11 +29,14 @@ import com.group.book_selling.template.EmailTemplate;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
  * @author Nguyen Duc Trung
  */
+@Slf4j // Sử dụng Lombok để tạo logger
+
 @Controller
 public class AuthController {
     @Autowired
@@ -50,7 +53,6 @@ public class AuthController {
 
     @GetMapping("/register")
     public String registerPage() {
-
         return "auth/register";
     }
 
@@ -69,7 +71,6 @@ public class AuthController {
         user.setRole(UserRole.USER);
         user.setEmailVerified(false);
         userService.prepareEmailVerification(user);
-        userService.save(user);
 
         String verificationUrl = ServletUriComponentsBuilder.fromRequestUri(request)
                 .replacePath("/verify-email")
@@ -81,14 +82,50 @@ public class AuthController {
         String fullName = (user.getFirstName() == null ? "" : user.getFirstName().trim())
                 + (user.getLastName() == null ? "" : " " + user.getLastName().trim());
         String message = EmailTemplate.verificationEmailTemplate(fullName.trim(), verificationUrl);
-        try {
-            emailService.sendHtmlMessage(user.getEmail(), "Xác thực email", message);
-            redirectAttributes.addFlashAttribute("registrationMessage", "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.");
+        emailService.sendHtmlMessage(user.getEmail(), "Xác thực email", message)
+                .exceptionally(ex -> {
+                    log.error("Lỗi khi gửi email xác thực cho {}", user.getEmail(), ex);
+                    return null;
+                });
+
+        redirectAttributes.addFlashAttribute("registrationMessage",
+                "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.");
+        return "redirect:/login";
+    }
+
+    @PostMapping("/resend-verification")
+    public String handleResendVerification(@RequestParam("email") String email, HttpServletRequest request,
+            RedirectAttributes redirectAttributes) {
+        if (email == null || email.isBlank()) {
+            redirectAttributes.addFlashAttribute("resetErrorMessage", "Vui lòng nhập email.");
             return "redirect:/login";
-        } catch (RuntimeException ex) {
-            model.addAttribute("emailError", "Không gửi được email xác thực. Vui lòng thử lại sau.");
-            return "auth/register";
         }
+
+        User user = userService.findByEmail(email);
+        if (user != null) {
+            userService.prepareEmailVerification(user);
+            String verificationUrl = ServletUriComponentsBuilder.fromRequestUri(request)
+                    .replacePath("/verify-email")
+                    .replaceQuery(null)
+                    .queryParam("token", user.getEmailVerificationToken())
+                    .build()
+                    .toUriString();
+
+            String fullName = (user.getFirstName() == null ? "" : user.getFirstName().trim())
+                    + (user.getLastName() == null ? "" : " " + user.getLastName().trim());
+            String message = EmailTemplate.verificationEmailTemplate(fullName.trim(), verificationUrl);
+
+            emailService.sendHtmlMessage(user.getEmail(), "Xác thực email", message)
+                    .exceptionally(ex -> {
+                        log.error("Lỗi khi gửi email xác thực lại cho {}: {}", email, ex);
+                        return null;
+                    });
+        }
+
+        redirectAttributes.addFlashAttribute("resetRequestMessage",
+                "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi lại liên kết xác thực. Vui lòng kiểm tra email của bạn.");
+
+        return "redirect:/login";
     }
 
     @GetMapping("/verify-email")
@@ -133,15 +170,17 @@ public class AuthController {
         String fullName = (user.getFirstName() == null ? "" : user.getFirstName().trim())
                 + (user.getLastName() == null ? "" : " " + user.getLastName().trim());
         String message = EmailTemplate.passwordResetEmailTemplate(fullName.trim(), resetUrl);
-        try {
-            emailService.sendHtmlMessage(user.getEmail(), "Yêu cầu đặt lại mật khẩu", message);
-            redirectAttributes.addFlashAttribute("resetRequestMessage",
-                    "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn thay đổi mật khẩu trong vài phút.");
-            return "redirect:/login";
-        } catch (RuntimeException ex) {
-            redirectAttributes.addFlashAttribute("resetErrorMessage", "Không thể gửi email. Vui lòng thử lại sau.");
-            return "redirect:/forgot-password";
-        }
+
+        emailService.sendHtmlMessage(user.getEmail(), "Yêu cầu đặt lại mật khẩu", message)
+                .exceptionally(ex -> {
+                    // log the error — you can't redirect from here
+                    log.error("Lỗi khi gửi email xác thực lại cho {}: {}", email, ex);
+                    return null;
+                });
+
+        redirectAttributes.addFlashAttribute("resetRequestMessage",
+                "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn thay đổi mật khẩu trong vài phút.");
+        return "redirect:/login";
     }
 
     @GetMapping("/reset-password")

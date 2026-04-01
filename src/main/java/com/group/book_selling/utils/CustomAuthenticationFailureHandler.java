@@ -1,6 +1,8 @@
 package com.group.book_selling.utils;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -19,11 +21,21 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException exception) throws IOException, ServletException {
         String redirectUrl = "/login?error";
+
+        // Try to preserve the submitted username so the login page can pre-fill
+        // the resend-verification form when account is disabled.
+        String username = request.getParameter("username");
+
         if (exception instanceof DisabledException) {
-            redirectUrl = "/login?disabled";
+            if (username != null && !username.isBlank()) {
+                redirectUrl = "/login?disabled&email=" + URLEncoder.encode(username, StandardCharsets.UTF_8.name());
+            } else {
+                redirectUrl = "/login?disabled";
+            }
         } else if (exception instanceof LockedException) {
             redirectUrl = "/login?locked";
         }
+
         response.sendRedirect(request.getContextPath() + redirectUrl);
     }
 }
