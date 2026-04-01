@@ -11,10 +11,14 @@ import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.group.book_selling.models.Author;
@@ -30,6 +34,8 @@ import com.group.book_selling.repository.IPublisherRepository;
 class BookControllerTest {
 
     private MockMvc mockMvc;
+
+    private MockMvc homeMockMvc;
 
     @Mock
     private IBookRepository bookRepository;
@@ -47,6 +53,9 @@ class BookControllerTest {
     void setUp() {
         BookController controller = new BookController(bookRepository, authorRepository, categoryRepository, publisherRepository);
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+        HomeController homeController = new HomeController(categoryRepository, bookRepository);
+        this.homeMockMvc = MockMvcBuilders.standaloneSetup(homeController).build();
     }
 
     @Test
@@ -104,6 +113,31 @@ class BookControllerTest {
                 .param("authorIds", "2")
                 .param("categoryIds", "3"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/books/cho-toi-xin-mot-ve-di-tuoi-tho"));
+                .andExpect(redirectedUrl("/books/cho-toi-xin-mot-ve-di-tuoi-tho"));
+    }
+
+    @Test
+    void genres_displaysCategoriesWithCount() throws Exception {
+        Category cat1 = Category.builder()
+                .id(1L)
+                .name("Tieu thuyet")
+                .slug("tieu-thuyet")
+                .build();
+
+        Category cat2 = Category.builder()
+                .id(2L)
+                .name("Khoa hoc")
+                .slug("khoa-hoc")
+                .build();
+
+        when(categoryRepository.findAll(any(Sort.class))).thenReturn(List.of(cat1, cat2));
+        when(bookRepository.countByCategories_Id(1L)).thenReturn(5L);
+        when(bookRepository.countByCategories_Id(2L)).thenReturn(3L);
+
+        homeMockMvc.perform(get("/genres"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("categories"))
+                .andExpect(model().attributeExists("categoryWithCount"))
+                .andExpect(model().attributeExists("selectedCategoryIds"));
     }
 }
