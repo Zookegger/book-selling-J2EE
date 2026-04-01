@@ -44,6 +44,8 @@ public class SecurityConfig {
                                                                 "/login",
                                                                 "/register",
                                                                 "/verify-email",
+                                                                "/forgot-password",
+                                                                "/reset-password",
                                                                 "/auth/**",
                                                                 "/error",
                                                                 "/css/**",

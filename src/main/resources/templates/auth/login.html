@@ -31,6 +31,15 @@
                         <div th:if="${verifyMessage}" class="alert alert-success" role="alert">
                             <span th:text="${verifyMessage}"></span>
                         </div>
+                        <div th:if="${resetRequestMessage}" class="alert alert-success" role="alert">
+                            <span th:text="${resetRequestMessage}"></span>
+                        </div>
+                        <div th:if="${resetErrorMessage}" class="alert alert-danger" role="alert">
+                            <span th:text="${resetErrorMessage}"></span>
+                        </div>
+                        <div th:if="${resetPasswordMessage}" class="alert alert-success" role="alert">
+                            <span th:text="${resetPasswordMessage}"></span>
+                        </div>
                         
                         <form th:action="@{/login}" method="post">
                             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
@@ -48,6 +57,9 @@
                                 <label for="password" class="form-label">Mật khẩu</label>
                                 <input type="password" class="form-control" id="password" name="password"
                                     placeholder="Password" required />
+                            </div>
+                            <div class="mb-3 text-end">
+                                <a th:href="@{/forgot-password}" class="small">Quên mật khẩu?</a>
                             </div>
 
                             <div class="mb-3 form-check">
