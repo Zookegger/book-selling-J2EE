@@ -30,6 +30,7 @@ import com.group.book_selling.repository.IPublisherRepository;
 import com.group.book_selling.utils.SlugUtils;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Controller MVC cho quản lý sách.
@@ -38,22 +39,13 @@ import jakarta.validation.Valid;
  */
 @Controller
 @RequestMapping("/books")
+@RequiredArgsConstructor
 public class BookController {
 
     private final IBookRepository bookRepository;
     private final IAuthorRepository authorRepository;
     private final ICategoryRepository categoryRepository;
     private final IPublisherRepository publisherRepository;
-
-    public BookController(IBookRepository bookRepository,
-            IAuthorRepository authorRepository,
-            ICategoryRepository categoryRepository,
-            IPublisherRepository publisherRepository) {
-        this.bookRepository = bookRepository;
-        this.authorRepository = authorRepository;
-        this.categoryRepository = categoryRepository;
-        this.publisherRepository = publisherRepository;
-    }
 
     @GetMapping
     public String list(@RequestParam(required = false) String keyword, Model model) {
@@ -265,4 +257,22 @@ public class BookController {
                     fieldName + " co gia tri khong ton tai trong he thong");
         }
     }
+
+    @GetMapping("/genres")
+    public String categoriesPage(Model model) {
+        addCategoryData(model);
+        return "categories";
+    }
+
+    private void addCategoryData(Model model) {
+        List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
+        List<CategoryWithCount> categoryWithCount = categories.stream()
+                .map(c -> new CategoryWithCount(c.getId(), c.getName(), bookRepository.countByCategories_Id(c.getId())))
+                .toList();
+
+        model.addAttribute("categoryWithCount", categoryWithCount);
+        model.addAttribute("selectedCategoryIds", List.of());
+    }
+
+    public record CategoryWithCount(Long id, String name, Long count) {}
 }

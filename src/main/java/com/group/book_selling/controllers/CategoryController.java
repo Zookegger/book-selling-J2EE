@@ -21,19 +21,17 @@ import com.group.book_selling.repository.ICategoryRepository;
 import com.group.book_selling.utils.SlugUtils;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 /**
  * API CRUD co ban cho danh muc sach.
  */
 @RestController
 @RequestMapping("/api/categories")
+@RequiredArgsConstructor
 public class CategoryController {
 
     private final ICategoryRepository categoryRepository;
-
-    public CategoryController(ICategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
 
     /** Lay danh sach danh muc. */
     @GetMapping

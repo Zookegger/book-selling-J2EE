@@ -8,27 +8,37 @@ package com.group.book_selling.controllers;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.group.book_selling.dto.AddressForm;
+import com.group.book_selling.dto.ChangePasswordForm;
+import com.group.book_selling.dto.DeleteAccountForm;
+import com.group.book_selling.dto.PersonalInfoForm;
+import com.group.book_selling.models.CustomUserDetail;
 import com.group.book_selling.models.User;
 import com.group.book_selling.models.UserRole;
 import com.group.book_selling.services.EmailService;
 import com.group.book_selling.services.UserServices;
 import com.group.book_selling.template.EmailTemplate;
+import com.group.book_selling.validators.ChangePasswordValidator;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -38,13 +48,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j // Sử dụng Lombok để tạo logger
 
 @Controller
+@RequiredArgsConstructor
 public class AuthController {
-    @Autowired
-    private UserServices userService;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private EmailService emailService;
+    private static final String PROFILE_VIEW = "profile/profile";
+
+    private final UserServices userService;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final ChangePasswordValidator changePasswordValidator;
+
+    @InitBinder("changePasswordForm")
+    protected void initChangePasswordBinder(WebDataBinder binder) {
+        binder.addValidators(changePasswordValidator);
+    }
 
     @GetMapping("/login")
     public String loginPage() {
@@ -228,5 +244,70 @@ public class AuthController {
         redirectAttributes.addFlashAttribute("resetPasswordMessage",
                 "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập với mật khẩu mới.");
         return "redirect:/login";
+    }
+    
+
+    /**
+     * Đổi mật khẩu người dùng
+     */
+    @PostMapping("/profile/change-password")
+    public String changePassword(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @Validated @ModelAttribute("changePasswordForm") ChangePasswordForm form,
+            BindingResult result,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (userDetail == null) {
+            return "redirect:/login";
+        }
+
+        User user = userService.findByEmail(userDetail.getEmail());
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy người dùng.");
+            return "redirect:/profile";
+        }
+
+        if (!result.hasFieldErrors("currentPassword") && !user.comparePassword(form.getCurrentPassword())) {
+            result.rejectValue("currentPassword", "currentPassword.invalid", "Mật khẩu hiện tại không đúng!");
+        }
+
+        if (result.hasErrors()) {
+            populateProfileModelForSecurity(user, form, model);
+            return PROFILE_VIEW;
+        }
+
+        user.setPassword(passwordEncoder.encode(form.getNewPassword()));
+        userService.save(user);
+        redirectAttributes.addFlashAttribute("successMessage", "Đổi mật khẩu thành công!");
+
+        return "redirect:/profile";
+    }
+
+    private void populateProfileModelForSecurity(User user, ChangePasswordForm form, Model model) {
+        model.addAttribute("user", user);
+
+        if (!model.containsAttribute("personalInfoForm")) {
+            PersonalInfoForm personalInfoForm = new PersonalInfoForm();
+            personalInfoForm.setFirstName(user.getFirstName());
+            personalInfoForm.setLastName(user.getLastName());
+            personalInfoForm.setPhone(user.getPhoneNumber());
+            model.addAttribute("personalInfoForm", personalInfoForm);
+        }
+
+        if (!model.containsAttribute("addAddressForm")) {
+            model.addAttribute("addAddressForm", new AddressForm());
+        }
+
+        if (!model.containsAttribute("editAddressForm")) {
+            model.addAttribute("editAddressForm", new AddressForm());
+        }
+
+        if (!model.containsAttribute("deleteAccountForm")) {
+            model.addAttribute("deleteAccountForm", new DeleteAccountForm());
+        }
+
+        model.addAttribute("changePasswordForm", form);
+        model.addAttribute("activeTab", "security");
     }
 }

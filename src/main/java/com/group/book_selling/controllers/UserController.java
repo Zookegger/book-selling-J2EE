@@ -1,54 +1,84 @@
 package com.group.book_selling.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
+import com.group.book_selling.dto.AddressForm;
+import com.group.book_selling.dto.ChangePasswordForm;
+import com.group.book_selling.dto.DeleteAccountForm;
+import com.group.book_selling.dto.PersonalInfoForm;
 import com.group.book_selling.models.CustomUserDetail;
 import com.group.book_selling.models.User;
 import com.group.book_selling.services.UserServices;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.group.book_selling.validators.AddressFormValidator;
+import com.group.book_selling.validators.DeleteAccountFormValidator;
+import com.group.book_selling.validators.PersonalInfoFormValidator;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Controller để xử lý các chức năng liên quan đến hồ sơ người dùng
  */
 @Controller
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
-    private UserServices userService;
+    private static final String PROFILE_VIEW = "profile/profile";
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserServices userService;
+    private final PersonalInfoFormValidator personalInfoFormValidator;
+    private final AddressFormValidator addressFormValidator;
+    private final DeleteAccountFormValidator deleteAccountFormValidator;
 
-    private static final String UPLOAD_DIR = "src/main/resources/static/uploads/avatar";
+    @InitBinder("personalInfoForm")
+    protected void initPersonalInfoBinder(WebDataBinder binder) {
+        binder.addValidators(personalInfoFormValidator);
+    }
+
+    @InitBinder("addAddressForm")
+    protected void initAddAddressBinder(WebDataBinder binder) {
+        binder.addValidators(addressFormValidator);
+    }
+
+    @InitBinder("editAddressForm")
+    protected void initEditAddressBinder(WebDataBinder binder) {
+        binder.addValidators(addressFormValidator);
+    }
+
+    @InitBinder("deleteAccountForm")
+    protected void initDeleteAccountBinder(WebDataBinder binder) {
+        binder.addValidators(deleteAccountFormValidator);
+    }
 
     /**
      * Hiển thị trang hồ sơ người dùng
      */
     @GetMapping("/profile")
     public String profilePage(
-        @AuthenticationPrincipal CustomUserDetail userDetail,
-        Model model) {
-            if (userDetail == null) {
-                return "redirect:/login";
-            }
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            Model model) {
+        if (userDetail == null) {
+            return "redirect:/login";
+        }
+
         User user = userService.findByEmail(userDetail.getEmail());
-        model.addAttribute("user", user);
-        return "profile";
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        prepareProfileModel(user, model);
+        return PROFILE_VIEW;
     }
 
     /**
@@ -56,152 +86,33 @@ public class UserController {
      */
     @PostMapping("/profile/update-personal")
     public String updatePersonalInfo(
-            @RequestParam("firstName") String firstName,
-            @RequestParam("lastName") String lastName,
-            @RequestParam(value = "phone", required = false) String phone,
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @Validated @ModelAttribute("personalInfoForm") PersonalInfoForm form,
+            BindingResult result,
+            Model model,
             RedirectAttributes redirectAttributes) {
-        
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication != null && authentication.isAuthenticated()) {
-            if (authentication.getPrincipal() instanceof CustomUserDetail) {
-                CustomUserDetail userDetail = (CustomUserDetail) authentication.getPrincipal();
-                User user = userService.findByEmail(userDetail.getEmail());
-                
-                if (user != null) {
-                    user.setFirstName(firstName);
-                    user.setLastName(lastName);
-                    user.setPhoneNumber(phone != null ? phone : "");
-                    userService.save(user);
-                    redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
-                }
-            }
-        }
-        
-        return "redirect:/profile";
-    }
-
-    /**
-     * Upload ảnh đại diện
-     */
-    @PostMapping("/profile/upload-avatar")
-    public String uploadAvatar(
-            @RequestParam("avatarFile") MultipartFile file,
-            RedirectAttributes redirectAttributes) {
-        
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (userDetail == null) {
             return "redirect:/login";
         }
-        
-        if (authentication.getPrincipal() instanceof CustomUserDetail) {
-            CustomUserDetail userDetail = (CustomUserDetail) authentication.getPrincipal();
-            User user = userService.findByEmail(userDetail.getEmail());
-            
-            if (user != null && !file.isEmpty()) {
-                try {
-                    // Validate file type
-                    String contentType = file.getContentType();
-                    if (!contentType.startsWith("image/")) {
-                        redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng chọn file ảnh!");
-                        return "redirect:/profile";
-                    }
-                    
-                    // Create upload directory if not exists
-                    Path uploadPath = Paths.get(UPLOAD_DIR);
-                    Files.createDirectories(uploadPath);
-                    
-                    // Generate unique filename
-                    String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                    Path filepath = uploadPath.resolve(filename);
-                    
-                    // Save file
-                    Files.copy(file.getInputStream(), filepath);
-                    
-                    // Update user profile picture URL
-                    user.setProfilePictureUrl("/uploads/avatar/" + filename);
-                    userService.save(user);
-                    
-                    redirectAttributes.addFlashAttribute("successMessage", "Cập nhật ảnh đại diện thành công!");
-                } catch (IOException e) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi tải ảnh: " + e.getMessage());
-                }
-            }
-        }
-        
-        return "redirect:/profile";
-    }
 
-    /**
-     * Đổi mật khẩu người dùng
-     */
-    @PostMapping("/profile/change-password")
-    public String changePassword(
-            @RequestParam("currentPassword") String currentPassword,
-            @RequestParam("newPassword") String newPassword,
-            @RequestParam("confirmPassword") String confirmPassword,
-            RedirectAttributes redirectAttributes) {
-        
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated()) {
+        User user = userService.findByEmail(userDetail.getEmail());
+        if (user == null) {
             return "redirect:/login";
         }
-        
-        if (authentication.getPrincipal() instanceof CustomUserDetail) {
-            CustomUserDetail userDetail = (CustomUserDetail) authentication.getPrincipal();
-            User user = userService.findByEmail(userDetail.getEmail());
-            
-            if (user != null) {
-                // Validate current password
-                if (!user.comparePassword(currentPassword)) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Mật khẩu hiện tại không đúng!");
-                    return "redirect:/profile";
-                }
-                
-                // Validate new password
-                if (newPassword == null || newPassword.trim().isEmpty()) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Mật khẩu mới không được trống!");
-                    return "redirect:/profile";
-                }
-                
-                if (!newPassword.equals(confirmPassword)) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Mật khẩu xác nhận không khớp!");
-                    return "redirect:/profile";
-                }
-                
-                // Validate password strength with regex
-                if (!isStrongPassword(newPassword)) {
-                    redirectAttributes.addFlashAttribute("errorMessage", 
-                        "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số!");
-                    return "redirect:/profile";
-                }
-                
-                // Update password
-                user.setPassword(passwordEncoder.encode(newPassword));
-                userService.save(user);
-                redirectAttributes.addFlashAttribute("successMessage", "Đổi mật khẩu thành công!");
-            }
-        }
-        
-        return "redirect:/profile";
-    }
 
-    /**
-     * Kiểm tra độ mạnh của mật khẩu
-     * Phải có: ít nhất 6 ký tự, chữ hoa, chữ thường, và số
-     */
-    private boolean isStrongPassword(String password) {
-        if (password == null || password.length() < 6) {
-            return false;
+        if (result.hasErrors()) {
+            prepareProfileModel(user, model);
+            model.addAttribute("activeTab", "personal");
+            return PROFILE_VIEW;
         }
-        
-        boolean hasUpperCase = password.matches(".*[A-Z].*");
-        boolean hasLowerCase = password.matches(".*[a-z].*");
-        boolean hasDigit = password.matches(".*\\d.*");
-        
-        return hasUpperCase && hasLowerCase && hasDigit;
+
+        user.setFirstName(form.getFirstName().trim());
+        user.setLastName(form.getLastName().trim());
+        user.setPhoneNumber(form.getPhone() == null ? "" : form.getPhone().trim());
+        userService.save(user);
+        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
+
+        return "redirect:/profile";
     }
 
     /**
@@ -210,37 +121,45 @@ public class UserController {
     @PostMapping("/profile/add-address")
     public String addAddress(
             @AuthenticationPrincipal CustomUserDetail userDetail,
-            @RequestParam("recipientName") String recipientName,
-            @RequestParam("phoneNumber") String phoneNumber,
-            @RequestParam("provinceOrCity") String provinceOrCity,
-            @RequestParam("district") String district,
-            @RequestParam("ward") String ward,
-            @RequestParam("streetDetails") String streetDetails,
-            @RequestParam(value = "isDefault", required = false) String isDefault,
+            @Validated @ModelAttribute("addAddressForm") AddressForm form,
+            BindingResult result,
+            Model model,
             RedirectAttributes redirectAttributes) {
-        
-        try {
-            User user = userService.findByEmail(userDetail.getEmail());
-            if (user != null) {
-                User.Address newAddress = User.Address.builder()
-                        .recipientName(recipientName)
-                        .phoneNumber(phoneNumber)
-                        .provinceOrCity(provinceOrCity)
-                        .district(district)
-                        .ward(ward)
-                        .streetDetails(streetDetails)
-                        .isDefault(isDefault != null && isDefault.equals("on"))
-                        .country("Vietnam")
-                        .build();
-                
-                user.getAddresses().add(newAddress);
-                userService.save(user);
-                redirectAttributes.addFlashAttribute("successMessage", "Thêm địa chỉ thành công!");
-            }
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi thêm địa chỉ: " + e.getMessage());
+        if (userDetail == null) {
+            return "redirect:/login";
         }
-        
+
+        User user = userService.findByEmail(userDetail.getEmail());
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        if (result.hasErrors()) {
+            prepareProfileModel(user, model);
+            model.addAttribute("activeTab", "addresses");
+            model.addAttribute("openModal", "addAddressModal");
+            return PROFILE_VIEW;
+        }
+
+        if (form.isDefaultAddress()) {
+            clearDefaultAddressFlag(user);
+        }
+
+        User.Address newAddress = User.Address.builder()
+                .recipientName(form.getRecipientName().trim())
+                .phoneNumber(form.getPhoneNumber().trim())
+                .provinceOrCity(form.getProvinceOrCity().trim())
+                .district(form.getDistrict().trim())
+                .ward(form.getWard().trim())
+                .streetDetails(form.getStreetDetails().trim())
+                .isDefault(form.isDefaultAddress())
+                .country("Vietnam")
+                .build();
+
+        user.getAddresses().add(newAddress);
+        userService.save(user);
+        redirectAttributes.addFlashAttribute("successMessage", "Thêm địa chỉ thành công!");
+
         return "redirect:/profile";
     }
 
@@ -250,35 +169,51 @@ public class UserController {
     @PostMapping("/profile/update-address")
     public String updateAddress(
             @AuthenticationPrincipal CustomUserDetail userDetail,
-            @RequestParam("addressIndex") int addressIndex,
-            @RequestParam("recipientName") String recipientName,
-            @RequestParam("phoneNumber") String phoneNumber,
-            @RequestParam("provinceOrCity") String provinceOrCity,
-            @RequestParam("district") String district,
-            @RequestParam("ward") String ward,
-            @RequestParam("streetDetails") String streetDetails,
-            @RequestParam(value = "isDefault", required = false) String isDefault,
+            @Validated @ModelAttribute("editAddressForm") AddressForm form,
+            BindingResult result,
+            Model model,
             RedirectAttributes redirectAttributes) {
-        
-        try {
-            User user = userService.findByEmail(userDetail.getEmail());
-            if (user != null && addressIndex >= 0 && addressIndex < user.getAddresses().size()) {
-                User.Address address = user.getAddresses().get(addressIndex);
-                address.setRecipientName(recipientName);
-                address.setPhoneNumber(phoneNumber);
-                address.setProvinceOrCity(provinceOrCity);
-                address.setDistrict(district);
-                address.setWard(ward);
-                address.setStreetDetails(streetDetails);
-                address.setDefault(isDefault != null && isDefault.equals("on"));
-                
-                userService.save(user);
-                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật địa chỉ thành công!");
-            }
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật địa chỉ: " + e.getMessage());
+        if (userDetail == null) {
+            return "redirect:/login";
         }
-        
+
+        User user = userService.findByEmail(userDetail.getEmail());
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        if (form.getAddressIndex() == null) {
+            result.rejectValue("addressIndex", "addressIndex.required", "Không tìm thấy địa chỉ cần cập nhật!");
+        }
+
+        if (!result.hasFieldErrors("addressIndex")
+                && (form.getAddressIndex() < 0 || form.getAddressIndex() >= user.getAddresses().size())) {
+            result.rejectValue("addressIndex", "addressIndex.invalid", "Địa chỉ không hợp lệ!");
+        }
+
+        if (result.hasErrors()) {
+            prepareProfileModel(user, model);
+            model.addAttribute("activeTab", "addresses");
+            model.addAttribute("openModal", "editAddressModal");
+            return PROFILE_VIEW;
+        }
+
+        if (form.isDefaultAddress()) {
+            clearDefaultAddressFlag(user);
+        }
+
+        User.Address address = user.getAddresses().get(form.getAddressIndex());
+        address.setRecipientName(form.getRecipientName().trim());
+        address.setPhoneNumber(form.getPhoneNumber().trim());
+        address.setProvinceOrCity(form.getProvinceOrCity().trim());
+        address.setDistrict(form.getDistrict().trim());
+        address.setWard(form.getWard().trim());
+        address.setStreetDetails(form.getStreetDetails().trim());
+        address.setDefault(form.isDefaultAddress());
+
+        userService.save(user);
+        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật địa chỉ thành công!");
+
         return "redirect:/profile";
     }
 
@@ -290,8 +225,12 @@ public class UserController {
             @AuthenticationPrincipal CustomUserDetail userDetail,
             @RequestParam("addressIndex") int addressIndex,
             RedirectAttributes redirectAttributes) {
-        
+
         try {
+            if (userDetail == null) {
+                return "redirect:/login";
+            }
+
             User user = userService.findByEmail(userDetail.getEmail());
             if (user != null && addressIndex >= 0 && addressIndex < user.getAddresses().size()) {
                 user.getAddresses().remove(addressIndex);
@@ -301,7 +240,7 @@ public class UserController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi xóa địa chỉ: " + e.getMessage());
         }
-        
+
         return "redirect:/profile";
     }
 
@@ -313,8 +252,12 @@ public class UserController {
             @AuthenticationPrincipal CustomUserDetail userDetail,
             @RequestParam("addressIndex") int addressIndex,
             RedirectAttributes redirectAttributes) {
-        
+
         try {
+            if (userDetail == null) {
+                return "redirect:/login";
+            }
+
             User user = userService.findByEmail(userDetail.getEmail());
             if (user != null && addressIndex >= 0 && addressIndex < user.getAddresses().size()) {
                 // Reset all addresses to not default
@@ -323,39 +266,83 @@ public class UserController {
                 }
                 // Set the selected one as default
                 user.getAddresses().get(addressIndex).setDefault(true);
-                
+
                 userService.save(user);
                 redirectAttributes.addFlashAttribute("successMessage", "Đặt địa chỉ mặc định thành công!");
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi đặt địa chỉ mặc định: " + e.getMessage());
         }
-        
+
         return "redirect:/profile";
     }
 
     /**
-    * Xóa tài khoản người dùng
-    */
+     * Xóa tài khoản người dùng
+     */
     @PostMapping("/profile/delete-account")
     public String deleteAccount(
-    @RequestParam("password") String password,
-    RedirectAttributes redirectAttributes) {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth.getPrincipal() instanceof CustomUserDetail userDetail) {
-        User user = userService.findByEmail(userDetail.getEmail());
-        // ✅ check password
-        if (!userService.checkPassword(password, user.getPassword())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Sai mật khẩu!");
-            return "redirect:/profile";
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @Validated @ModelAttribute("deleteAccountForm") DeleteAccountForm form,
+            BindingResult result,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+        if (userDetail == null) {
+            return "redirect:/login";
         }
-        // ✅ delete user
+
+        User user = userService.findByEmail(userDetail.getEmail());
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        if (result.hasErrors()) {
+            prepareProfileModel(user, model);
+            model.addAttribute("activeTab", "security");
+            model.addAttribute("openModal", "deleteAccountModal");
+            return PROFILE_VIEW;
+        }
+
         userService.deleteUser(user.getId());
-        // ✅ logout
         SecurityContextHolder.clearContext();
         return "redirect:/login?deleted";
     }
-    return "redirect:/login";
-}
-}
 
+    private void prepareProfileModel(User user, Model model) {
+        model.addAttribute("user", user);
+
+        if (!model.containsAttribute("personalInfoForm")) {
+            PersonalInfoForm personalInfoForm = new PersonalInfoForm();
+            personalInfoForm.setFirstName(user.getFirstName());
+            personalInfoForm.setLastName(user.getLastName());
+            personalInfoForm.setPhone(user.getPhoneNumber());
+            model.addAttribute("personalInfoForm", personalInfoForm);
+        }
+
+        if (!model.containsAttribute("addAddressForm")) {
+            model.addAttribute("addAddressForm", new AddressForm());
+        }
+
+        if (!model.containsAttribute("editAddressForm")) {
+            model.addAttribute("editAddressForm", new AddressForm());
+        }
+
+        if (!model.containsAttribute("deleteAccountForm")) {
+            model.addAttribute("deleteAccountForm", new DeleteAccountForm());
+        }
+
+        if (!model.containsAttribute("changePasswordForm")) {
+            model.addAttribute("changePasswordForm", new ChangePasswordForm());
+        }
+
+        if (!model.containsAttribute("activeTab")) {
+            model.addAttribute("activeTab", "personal");
+        }
+    }
+
+    private void clearDefaultAddressFlag(User user) {
+        for (User.Address address : user.getAddresses()) {
+            address.setDefault(false);
+        }
+    }
+}

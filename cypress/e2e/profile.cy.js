@@ -35,6 +35,15 @@ it('Cập nhật thông tin cá nhân', () => {
     cy.contains(/thành công/i).should('exist')
 })
 
+it('Không cho cập nhật thông tin cá nhân khi thiếu họ', () => {
+    cy.get('input[name="firstName"]').clear()
+    cy.get('input[name="lastName"]').clear().type('User')
+
+    cy.contains('Cập nhật').click()
+
+    cy.contains(/Họ không được để trống/i).should('exist')
+})
+
 // ================= ADDRESS =================
 it('Thêm địa chỉ', () => {
     cy.contains('Địa chỉ').click()
@@ -59,6 +68,17 @@ it('Thêm địa chỉ', () => {
     cy.contains('Test User').should('exist')
 })
 
+it('Không cho thêm địa chỉ khi thiếu số điện thoại', () => {
+    cy.contains('Địa chỉ').click()
+    cy.contains('Thêm địa chỉ').click()
+
+    cy.get('#newRecipientName').type('Test User')
+    cy.get('#newStreetDetails').type('123 Test Street')
+
+    cy.contains('#addAddressModal button', 'Thêm').click()
+    cy.contains(/Số điện thoại không được để trống/i).should('exist')
+})
+
 // ================= DELETE ADDRESS =================
 it('Xóa địa chỉ', () => {
     cy.contains('Địa chỉ').click()
@@ -74,13 +94,24 @@ it('Xóa địa chỉ', () => {
 it('Đổi mật khẩu', () => {
     cy.contains('Đổi mật khẩu').click()
 
-    cy.get('#currentPassword').type(Manh1234)
+    cy.get('#currentPassword').type(password)
     cy.get('#newPassword').type('Newpass123')
     cy.get('#confirmPassword').type('Newpass123')
 
     cy.contains('Đổi mật khẩu').click()
 
     cy.contains(/thành công/i).should('exist')
+})
+
+it('Không đổi mật khẩu khi xác nhận không khớp', () => {
+    cy.contains('Đổi mật khẩu').click()
+
+    cy.get('#currentPassword').type(password)
+    cy.get('#newPassword').type('Newpass123')
+    cy.get('#confirmPassword').type('NotMatch123')
+
+    cy.contains('button', 'Đổi mật khẩu').click()
+    cy.contains(/Mật khẩu xác nhận không khớp/i).should('exist')
 })
 
 // ================= DELETE ACCOUNT =================

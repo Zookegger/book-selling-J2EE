@@ -20,19 +20,17 @@ import com.group.book_selling.repository.IPublisherRepository;
 import com.group.book_selling.utils.SlugUtils;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 /**
  * API CRUD co ban cho nha xuat ban.
  */
 @RestController
 @RequestMapping("/api/publishers")
+@RequiredArgsConstructor
 public class PublisherController {
 
     private final IPublisherRepository publisherRepository;
-
-    public PublisherController(IPublisherRepository publisherRepository) {
-        this.publisherRepository = publisherRepository;
-    }
 
     /** Lay danh sach nha xuat ban. */
     @GetMapping

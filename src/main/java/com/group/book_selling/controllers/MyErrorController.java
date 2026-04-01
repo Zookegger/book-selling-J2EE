@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.NoArgsConstructor;
 
 @Controller
+@NoArgsConstructor
 public class MyErrorController implements ErrorController {
 
     @RequestMapping("/error")

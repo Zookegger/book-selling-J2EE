@@ -100,9 +100,6 @@ public class User {
     @Column(length = 20)
     private String phoneNumber;
 
-    @Column(columnDefinition = "TEXT")
-    private String profilePictureUrl;
-
     @NotBlank
     @Column(nullable = false)
     private String password;
