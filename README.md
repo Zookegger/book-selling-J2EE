@@ -113,7 +113,6 @@ Xem mã nguồn controller liên quan: [src/main/java/com/group/book_selling/con
 
 ## Ghi chú phát triển / TODO
 
-- Thực hiện chức năng phục hồi mật khẩu (password reset) — hiện chưa có.
 - Hoàn thiện luồng thanh toán (`/checkout`) nếu cần tích hợp cổng thanh toán.
 - Bảo mật: cấu hình CORS, CSP và các header bảo mật khi deploy.
 
@@ -132,11 +131,3 @@ Xem mã nguồn controller liên quan: [src/main/java/com/group/book_selling/con
 Nếu cần hỗ trợ nhanh, mở issue trong repo hoặc liên hệ người phát triển chính (xem thông tin trong pom.xml).
 
 ---
-
-Mong rằng README này giúp bạn bắt đầu nhanh với dự án. Nếu muốn, tôi có thể:
-
-- Thêm hướng dẫn deploy (Docker / Heroku / VPS)
-- Triển khai flow phục hồi mật khẩu (endpoints, template email, service)
-
-Chọn bước tiếp theo bạn muốn tôi thực hiện.
-

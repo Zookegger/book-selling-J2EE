@@ -97,7 +97,7 @@
     <th:block th:replace="~{layout::footer}"></th:block>
 
     <script>
-        document.on('click', '#btn-resend-email', function (e) {
+        $(document).on('click', '#btn-resend-email', function (e) {
             e.preventDefault();
             const form = document.getElementById('resend-form');
             $('#btn-resend-email').prop('disabled', true).text('Đang gửi...');

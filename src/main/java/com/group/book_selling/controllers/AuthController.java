@@ -117,7 +117,7 @@ public class AuthController {
 
             emailService.sendHtmlMessage(user.getEmail(), "Xác thực email", message)
                     .exceptionally(ex -> {
-                        log.error("Lỗi khi gửi email xác thực lại cho {}: {}", email, ex.getMessage());
+                        log.error("Lỗi khi gửi email xác thực lại cho {}: {}", email, ex);
                         return null;
                     });
         }
@@ -174,7 +174,7 @@ public class AuthController {
         emailService.sendHtmlMessage(user.getEmail(), "Yêu cầu đặt lại mật khẩu", message)
                 .exceptionally(ex -> {
                     // log the error — you can't redirect from here
-                    log.error("Lỗi khi gửi email xác thực lại cho {}: {}", email, ex.getMessage());
+                    log.error("Lỗi khi gửi email xác thực lại cho {}: {}", email, ex);
                     return null;
                 });
 
