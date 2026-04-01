@@ -48,39 +48,44 @@
                 </a>
 
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false"
-                    aria-label="Toggle navigation">
+                    data-bs-target="#navbarMain">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarMain">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2 fw-medium">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 fw-medium">
                         <li class="nav-item"><a class="nav-link px-2" href="/books">Sách</a></li>
                         <li class="nav-item"><a class="nav-link px-2" href="/genres">Thể loại</a></li>
                         <li class="nav-item"><a class="nav-link px-2" href="/bestsellers">Bán chạy</a></li>
                         <li class="nav-item"><a class="nav-link px-2" href="/about">Giới thiệu</a></li>
                     </ul>
 
-                    <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
-                        <form class="position-relative header-search" th:action="@{/books}" method="get"
-                            autocomplete="off">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                                <input id="header-search-input" name="keyword" class="form-control border-start-0"
-                                    type="search" placeholder="Tìm ISBN, tên sách, tác giả, nhà xuất bản"
-                                    aria-label="Tìm kiếm" />
-                                <button class="btn btn-primary" type="submit">Tìm</button>
-                            </div>
-                            <ul id="header-search-suggestions"
-                                class="list-group position-absolute header-search-suggestions d-none"></ul>
+                    <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+
+                        <!-- Search: icon toggles the bar -->
+                        <button class="btn btn-sm btn-link text-secondary px-2" id="searchToggle" type="button">
+                            <i class="bi bi-search fs-5"></i>
+                        </button>
+                        <form id="searchForm" class="position-relative d-none" th:action="@{/books}" method="get">
+                            <input id="header-search-input" name="keyword" class="form-control form-control-sm"
+                                type="search" placeholder="Tìm sách, tác giả..." style="width: 220px;" />
                         </form>
-                        <a href="/cart" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold nav-item"><i
-                                class="fa fa-cart-shopping me-2"></i>Giỏ hàng (0)</a>
+
+                        <!-- Cart: icon + badge -->
+                        <a href="/cart" class="btn btn-sm btn-link text-secondary position-relative px-2">
+                            <i class="bi bi-bag fs-5"></i>
+                            <!-- Remember to update the cart item count dynamically -->
+                            <span class="position-absolute translate-middle badge rounded-pill bg-primary" style="font-size: 10px; top: 8px;">0</span> 
+                        </a>
+
+                        <div class="vr mx-1"></div>
+
+                        <!-- Authenticated: user dropdown only -->
                         <div sec:authorize="isAuthenticated()">
-                            <li class="nav-item dropdown" style="list-style: none;">
-                                <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"
-                                    title="account" aria-expanded="false">
-                                    <i class="fa fa-user fs-5"></i>
+                            <div class="dropdown">
+                                <a class="btn btn-sm btn-link text-secondary px-2" role="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle fs-5"></i>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/profile">Hồ sơ</a></li>
@@ -90,12 +95,15 @@
                                     </li>
                                     <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
                                 </ul>
-                            </li>
+                            </div>
                         </div>
-                        <div sec:authorize="!isAuthenticated()" class="d-flex align-items-center gap-2">
-                            <a class="btn btn-outline-primary nav-item" role="button" href="/login">Đăng nhập</a>
-                            <a class="btn btn-outline-secondary nav-item" role="button" href="/register">Đăng ký</a>
+
+                        <!-- Unauthenticated: one button, register is a text link -->
+                        <div sec:authorize="!isAuthenticated()" class="d-flex align-items-center gap-3">
+                            <a class="text-muted small text-decoration-none" href="/register">Đăng ký</a>
+                            <a class="btn btn-sm btn-outline-primary" href="/login">Đăng nhập</a>
                         </div>
+
                     </div>
                 </div>
 
@@ -153,7 +161,15 @@
         </div>
 
         <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+
         <script>
+            document.getElementById('searchToggle').addEventListener('click', function () {
+                const form = document.getElementById('searchForm');
+                form.classList.toggle('d-none');
+                if (!form.classList.contains('d-none')) form.querySelector('input').focus();
+            });
+
             (() => {
                 const input = document.getElementById('header-search-input');
                 const list = document.getElementById('header-search-suggestions');
