@@ -31,22 +31,6 @@ public class HomeController {
         return "index";
     }
 
-    @GetMapping("/genres")
-    public String categories(Model model) {
-        List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "orderIndex").and(Sort.by("id")));
-        List<Map<String, Object>> categoryWithCount = categories.stream().map(c -> {
-            Map<String, Object> data = new java.util.HashMap<>();
-            data.put("id", c.getId());
-            data.put("name", c.getName());
-            data.put("count", bookRepository.countByCategories_Id(c.getId()));
-            return data;
-        }).toList();
-
-        model.addAttribute("categoryWithCount", categoryWithCount);
-        model.addAttribute("selectedCategoryIds", List.of());
-        return "books/categories";
-    }
-
     @GetMapping("/bestsellers")
     public String bestSellers(Model model) {
         List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "orderIndex").and(Sort.by("id")));
