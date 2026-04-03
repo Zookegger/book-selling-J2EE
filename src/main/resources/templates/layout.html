@@ -8,32 +8,16 @@
         <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
         <link rel="stylesheet" th:href="@{/css/global.css}" />
         <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link
-            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap"
-            rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-            integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
-            crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.13.1/font/bootstrap-icons.min.css"
-            integrity="sha512-t7Few9xlddEmgd3oKZQahkNI4dS6l80+eGEzFQiqtyVYdvcSG2D3Iub77R20BdotfRPA9caaRkg1tyaJiPmO0g=="
-            crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.13.1/font/bootstrap-icons.min.css" />
     </th:block>
     <title>LuminaBook — Cửa hàng sách</title>
     <style>
-        .header-search {
-            min-width: 340px;
-            max-width: 420px;
-        }
-
-        .header-search-suggestions {
-            top: 100%;
-            left: 0;
-            right: 0;
-            z-index: 1050;
-            max-height: 280px;
-            overflow-y: auto;
-        }
+        .header-search { min-width: 340px; max-width: 420px; }
+        .header-search-suggestions { top: 100%; left: 0; right: 0; z-index: 1050; max-height: 280px; overflow-y: auto; }
+        /* Hiệu ứng cho menu quản trị */
+        .nav-admin-link { color: #dc3545 !important; font-weight: 700 !important; }
     </style>
 </head>
 
@@ -47,8 +31,7 @@
                     Lumina<span class="text-primary">Book</span>
                 </a>
 
-                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarMain">
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -58,56 +41,67 @@
                         <li class="nav-item"><a class="nav-link px-2" href="/genres">Thể loại</a></li>
                         <li class="nav-item"><a class="nav-link px-2" href="/bestsellers">Bán chạy</a></li>
                         <li class="nav-item"><a class="nav-link px-2" href="/about">Giới thiệu</a></li>
+
+                        <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+                            <a class="nav-link dropdown-toggle nav-admin-link px-2" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Quản trị
+                            </a>
+                            <ul class="dropdown-menu border-0 shadow-sm" aria-labelledby="adminDropdown">
+                                <li>
+                                    <a class="dropdown-item" th:href="@{/admin/books}">
+                                        <i class="bi bi-book me-2"></i>Quản lý kho sách
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" th:href="@{/admin/categories}">
+                                        <i class="bi bi-tags me-2"></i>Quản lý thể loại
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            </ul>
+                        </li>
                     </ul>
 
                     <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
-
-                        <!-- Search: icon toggles the bar -->
                         <button class="btn btn-sm btn-link text-secondary px-2" id="searchToggle" type="button">
                             <i class="bi bi-search fs-5"></i>
                         </button>
                         <form id="searchForm" class="position-relative d-none" th:action="@{/books}" method="get">
-                            <input id="header-search-input" name="keyword" class="form-control form-control-sm"
-                                type="search" placeholder="Tìm sách, tác giả..." style="width: 220px;" />
+                            <input id="header-search-input" name="keyword" class="form-control form-control-sm" type="search" placeholder="Tìm sách..." style="width: 220px;" />
                         </form>
 
-                        <!-- Cart: icon + badge -->
                         <a href="/cart" class="btn btn-sm btn-link text-secondary position-relative px-2">
                             <i class="bi bi-bag fs-5"></i>
-                            <!-- Remember to update the cart item count dynamically -->
-                            <span class="position-absolute translate-middle badge rounded-pill bg-primary"
-                                style="font-size: 10px; top: 8px;">0</span>
+                            <span class="position-absolute translate-middle badge rounded-pill bg-primary" style="font-size: 10px; top: 8px;">0</span>
                         </a>
 
                         <div class="vr mx-1"></div>
 
-                        <!-- Authenticated: user dropdown only -->
                         <div sec:authorize="isAuthenticated()">
                             <div class="dropdown">
-                                <a class="btn btn-sm btn-link text-secondary px-2" role="button"
-                                    data-bs-toggle="dropdown">
+                                <a class="btn btn-sm btn-link text-secondary px-2" role="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-person-circle fs-5"></i>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                    <li sec:authorize="hasRole('ADMIN')">
+                                        <a class="dropdown-item fw-bold text-danger" th:href="@{/admin/books}">Khu vực Admin</a>
+                                    </li>
+                                    <li sec:authorize="hasRole('ADMIN')"><hr class="dropdown-divider"></li>
+                                    
                                     <li><a class="dropdown-item" href="/profile">Hồ sơ</a></li>
                                     <li><a class="dropdown-item" href="/orders">Đơn hàng</a></li>
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
                                 </ul>
                             </div>
                         </div>
 
-                        <!-- Unauthenticated: one button, register is a text link -->
                         <div sec:authorize="!isAuthenticated()" class="d-flex align-items-center gap-3">
                             <a class="text-muted small text-decoration-none" href="/register">Đăng ký</a>
                             <a class="btn btn-sm btn-outline-primary" href="/login">Đăng nhập</a>
                         </div>
-
                     </div>
                 </div>
-
             </div>
         </nav>
     </header>
@@ -116,61 +110,43 @@
 
     <footer class="bg-dark text-white pt-5 pb-4 mt-auto" th:fragment="footer">
         <div class="container-xl">
-
             <div class="row gy-4 mb-4 ps-xs-4 ps-sm-5">
                 <div class="col-12 col-md-6 ps-md-4">
                     <p class="fs-4 fw-bold mb-2">LuminaBook</p>
-                    <p class="text-white-50 lh-lg">
-                        Sách tuyển chọn dành cho người ham đọc. Giao tận nơi.
-                    </p>
+                    <p class="text-white-50 lh-lg">Sách tuyển chọn dành cho người ham đọc. Giao tận nơi.</p>
                 </div>
-
                 <div class="col-6 col-md-3">
                     <p class="text-uppercase fw-semibold mb-3">Cửa hàng</p>
                     <ul class="list-unstyled lh-lg mb-0">
                         <li><a href="/books" class="text-white-50 text-decoration-none">Tất cả sách</a></li>
                         <li><a href="/genres" class="text-white-50 text-decoration-none">Thể loại</a></li>
                         <li><a href="/bestsellers" class="text-white-50 text-decoration-none">Bán chạy</a></li>
-                        <li><a href="/new" class="text-white-50 text-decoration-none">Sản phẩm mới</a></li>
                     </ul>
                 </div>
-
                 <div class="col-6 col-md-3">
                     <p class="text-uppercase fw-semibold mb-3">Trợ giúp</p>
                     <ul class="list-unstyled lh-lg mb-0">
-                        <li><a href="/faq" class="text-white-50 text-decoration-none">Câu hỏi thường gặp</a></li>
-                        <li><a href="/shipping" class="text-white-50 text-decoration-none">Vận chuyển</a></li>
-                        <li><a href="/returns" class="text-white-50 text-decoration-none">Đổi trả</a></li>
                         <li><a href="/contact" class="text-white-50 text-decoration-none">Liên hệ</a></li>
+                        <li><a href="/faq" class="text-white-50 text-decoration-none">FAQ</a></li>
                     </ul>
                 </div>
-
             </div>
-
             <hr class="border-secondary opacity-50 mb-4">
-
-            <div
-                class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-white-50 small">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-white-50 small">
                 <p class="mb-0">&copy; 2026 LuminaBook. Mọi quyền được bảo lưu.</p>
-                <ul class="list-inline mb-0">
-                    <li class="list-inline-item"><a href="/privacy" class="text-white-50 text-decoration-none">Quyền
-                            riêng tư</a></li>
-                    <li class="list-inline-item ms-3"><a href="/terms" class="text-white-50 text-decoration-none">Điều
-                            khoản</a></li>
-                </ul>
             </div>
         </div>
 
         <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
         <script th:src="@{/js/jquery-4.0.0.min.js}"></script>
-
+        
         <script>
             document.getElementById('searchToggle').addEventListener('click', function () {
                 const form = document.getElementById('searchForm');
                 form.classList.toggle('d-none');
                 if (!form.classList.contains('d-none')) form.querySelector('input').focus();
             });
-
+            
             (() => {
                 const input = document.getElementById('header-search-input');
                 const list = document.getElementById('header-search-suggestions');
@@ -254,5 +230,4 @@
     </footer>
 
 </body>
-
 </html>

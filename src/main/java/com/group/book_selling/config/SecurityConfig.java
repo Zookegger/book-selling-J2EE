@@ -3,6 +3,7 @@ package com.group.book_selling.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,11 +15,10 @@ import com.group.book_selling.models.UserRole;
 import com.group.book_selling.services.CustomUserDetailServices;
 import com.group.book_selling.utils.CustomAuthenticationFailureHandler;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+@EnableMethodSecurity
+public class SecurityConfig {   
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -42,8 +42,11 @@ public class SecurityConfig {
             CustomAuthenticationFailureHandler failureHandler) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/",
-                                "/**",
+                        .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name())
+                        .requestMatchers("/books/new", "/books/*/edit", "/books/*/delete").hasRole(UserRole.ADMIN.name())
+                        .requestMatchers("/api/categories/**").hasRole(UserRole.ADMIN.name())
+                        .requestMatchers(
+                                "/",
                                 "/login",
                                 "/register",
                                 "/verify-email",
@@ -53,9 +56,13 @@ public class SecurityConfig {
                                 "/error",
                                 "/css/**",
                                 "/js/**",
-                                "/images/**")
+                                "/images/**",
+                                "/books",
+                                "/books/search",
+                                "/books/autocomplete",
+                                "/books/*",
+                                "/genres")
                         .permitAll()
-                        .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name())
                         .requestMatchers("/user/**")
                         .hasAnyRole(UserRole.ADMIN.name(), UserRole.USER.name())
                         .anyRequest().authenticated())
@@ -74,11 +81,7 @@ public class SecurityConfig {
                         .userDetailsService(userDetailsService()))
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint((req, res, authException) -> {
-                            if ("GET".equalsIgnoreCase(req.getMethod())) {
-                                res.sendError(HttpServletResponse.SC_NOT_FOUND);
-                            } else {
-                                res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                            }
+                            res.sendRedirect("/login");
                         }).accessDeniedPage("/403"))
                 .build();
     }

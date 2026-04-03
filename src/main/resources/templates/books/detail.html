@@ -7,23 +7,16 @@
     <title th:text="${book.title} + ' - LuminaBook'">Thông tin sách</title>
     <th:block th:replace="~{layout :: link-css}"></th:block>
     <style>
-        .book-badge {
-            letter-spacing: 0.04em;
+        .book-badge { letter-spacing: 0.04em; }
+        .book-card { border-radius: 1.5rem; overflow: hidden; }
+        .book-cover-placeholder { min-height: 340px; }
+        .book-info-box { 
+            border-radius: 1.25rem; 
+            border: 1px solid rgba(0, 0, 0, 0.08); 
+            transition: all 0.2s ease;
         }
-
-        .book-card {
-            border-radius: 1.5rem;
-            overflow: hidden;
-        }
-
-        .book-cover-placeholder {
-            min-height: 340px;
-        }
-
-        .book-info-box {
-            border-radius: 1.25rem;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-        }
+        .book-info-box:hover { background-color: #f8f9fa !important; }
+        .btn-admin-action { border-radius: 0.75rem; padding: 0.5rem 1rem; }
     </style>
 </head>
 
@@ -31,18 +24,30 @@
     <th:block th:replace="~{layout::header}"></th:block>
 
     <main class="container-xl flex-grow-1 py-5">
-        <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <a class="btn btn-outline-secondary btn-sm shadow-sm" th:href="@{/books}">
-                <i class="fa fa-arrow-left me-1"></i> Quay lại danh sách sách
+                <i class="fa fa-arrow-left me-1"></i> Quay lại danh sách
             </a>
+
+            <div sec:authorize="hasRole('ADMIN')" class="d-flex gap-2">
+                <a th:href="@{/books/{slug}/edit(slug=${book.slug})}" class="btn btn-secondary btn-sm btn-admin-action shadow-sm">
+                    <i class="fa fa-edit me-1"></i> Chỉnh sửa
+                </a>
+                <form th:action="@{/books/{slug}/delete(slug=${book.slug})}" method="post" 
+                      th:onsubmit="return confirm('Bạn có chắc chắn muốn xóa cuốn sách [[${book.title}]] không?');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm btn-admin-action shadow-sm">
+                        <i class="fa fa-trash me-1"></i> Xóa sách
+                    </button>
+                </form>
+            </div>
         </div>
 
         <section class="bg-white rounded-4 shadow-sm p-4 p-md-5 book-card">
             <div class="row g-4 align-items-start">
                 <div class="col-lg-4">
                     <div class="position-relative overflow-hidden rounded-4 shadow-lg">
-                        <div th:if="${book.coverImage != null and !book.coverImage.isBlank()}" class="w-100 h-100">
-                            <img th:src="${book.coverImage}" class="img-fluid w-100" alt="Ảnh bìa sách" />
+                        <div th:if="${book.coverImage != null and !book.coverImage.isBlank()}" class="w-100">
+                            <img th:src="${book.coverImage}" class="img-fluid w-100" alt="Ảnh bìa sách" style="object-fit: cover; max-height: 550px;" />
                         </div>
                         <div th:if="${book.coverImage == null or book.coverImage.isBlank()}"
                             class="book-cover-placeholder d-flex align-items-center justify-content-center bg-light">
@@ -54,9 +59,9 @@
                     </div>
 
                     <div class="mt-4 text-center text-sm-start">
-                        <p class="text-uppercase text-muted small mb-2">Thể loại</p>
+                        <p class="text-uppercase text-muted small mb-2 fw-bold">Thể loại</p>
                         <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-sm-start">
-                            <span class="badge bg-primary book-badge" th:each="category : ${book.categories}"
+                            <span class="badge bg-primary px-3 py-2 rounded-pill book-badge" th:each="category : ${book.categories}"
                                 th:text="${category.name}"></span>
                         </div>
                     </div>
@@ -67,26 +72,26 @@
                         <div class="mb-4">
                             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3">
                                 <div>
-                                    <h1 class="display-6 fw-bold mb-2" th:text="${book.title}"></h1>
+                                    <h1 class="display-6 fw-bold mb-2 text-dark" th:text="${book.title}"></h1>
                                     <p class="text-muted fs-5 mb-0" th:text="${book.subtitle}"></p>
                                 </div>
                                 <div class="text-sm-end">
-                                    <span class="badge bg-info text-dark text-uppercase book-badge"
+                                    <span class="badge bg-light text-dark border px-3 py-2 text-uppercase book-badge"
                                         th:text="${book.language}"></span>
                                 </div>
                             </div>
 
-                            <div class="mt-3 text-muted">
-                                <span class="me-3"><strong>ISBN:</strong> <span th:text="${book.isbn}"></span></span>
-                                <span><strong>Trang:</strong> <span th:text="${book.pageCount}"></span></span>
+                            <div class="mt-3 py-2 border-top border-bottom">
+                                <span class="me-4 text-muted"><i class="fa fa-barcode me-1 text-primary"></i> <strong>ISBN:</strong> [[${book.isbn}]]</span>
+                                <span class="text-muted"><i class="fa fa-file-alt me-1 text-primary"></i> <strong>Số trang:</strong> [[${book.pageCount}]] trang</span>
                             </div>
                         </div>
 
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <div class="p-4 book-info-box bg-light h-100">
-                                    <p class="text-uppercase text-muted small mb-2">Tác giả</p>
-                                    <p class="fw-semibold mb-0">
+                                    <p class="text-uppercase text-muted small mb-2 fw-bold">Tác giả</p>
+                                    <p class="fw-semibold mb-0 fs-5 text-primary">
                                         <span th:if="${#lists.isEmpty(book.authors)}">Không xác định</span>
                                         <span th:each="author, iterStat : ${book.authors}">
                                             <span th:text="${author.name}"></span><span th:if="${!iterStat.last}">, </span>
@@ -96,31 +101,30 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="p-4 book-info-box bg-light h-100">
-                                    <p class="text-uppercase text-muted small mb-2">Nhà xuất bản</p>
-                                    <p class="fw-semibold mb-0"
-                                        th:text="${book.publisher != null ? book.publisher.name : 'Không có'}"></p>
+                                    <p class="text-uppercase text-muted small mb-2 fw-bold">Nhà xuất bản</p>
+                                    <p class="fw-semibold mb-0 fs-5"
+                                        th:text="${book.publisher != null ? book.publisher.name : 'Đang cập nhật'}"></p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="rounded-4 bg-white p-4 border book-info-box mb-4">
-                            <h2 class="h5 fw-semibold mb-3">Giới thiệu về quyển sách</h2>
-                            <p class="text-muted mb-0" th:text="${book.description}"></p>
+                        <div class="rounded-4 bg-white p-4 border book-info-box mb-4 shadow-sm">
+                            <h2 class="h5 fw-bold mb-3 text-dark"><i class="fa fa-info-circle me-2 text-primary"></i>Giới thiệu sách</h2>
+                            <p class="text-muted mb-0 lh-lg" style="text-align: justify;" th:text="${book.description}"></p>
                         </div>
 
                         <div class="row row-cols-1 row-cols-md-2 g-3">
                             <div class="col">
                                 <div class="p-4 book-info-box h-100">
-                                    <p class="text-uppercase text-muted small mb-2">Ngày xuất bản</p>
-                                    <p class="fw-semibold mb-0" th:text="${book.publicationDate}"></p>
+                                    <p class="text-uppercase text-muted small mb-2 fw-bold">Ngày xuất bản</p>
+                                    <p class="fw-semibold mb-0"><i class="fa fa-calendar-alt me-2 text-muted"></i> [[${book.publicationDate}]]</p>
                                 </div>
                             </div>
                             <div class="col">
-                                <div class="p-4 book-info-box h-100">
-                                    <p class="text-uppercase text-muted small mb-2">Danh mục</p>
-                                    <p class="mb-0" th:each="category, iterStat : ${book.categories}">
-                                        <span th:text="${category.name}"></span><span th:if="${!iterStat.last}">, </span>
-                                    </p>
+                                <div class="p-4 book-info-box h-100 d-flex flex-column justify-content-center">
+                                    <button class="btn btn-primary btn-lg shadow-sm w-100">
+                                        <i class="fa fa-cart-plus me-2"></i> Thêm vào giỏ hàng
+                                    </button>
                                 </div>
                             </div>
                         </div>

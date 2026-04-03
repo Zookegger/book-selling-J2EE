@@ -21,92 +21,108 @@
                 <h1 class="h4 mb-4" th:text="${pageTitle}"></h1>
 
                 <form th:action="${book != null} ? @{/books/{slug}/edit(slug=${book.slug})} : @{/books/new}"
-                    th:object="${bookRequest}" method="post">
+                      th:object="${bookRequest}" 
+                      method="post" 
+                      enctype="multipart/form-data">
+                    
+                    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
                     <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
                     <div class="mb-3">
-                        <label for="title" class="form-label">Tiêu đề</label>
+                        <label for="title" class="form-label fw-bold">Tiêu đề</label>
                         <input type="text" th:field="*{title}" id="title" class="form-control" placeholder="Nhập tiêu đề sách" required />
-                        <div class="text-danger" th:errors="*{title}"></div>
+                        <div class="text-danger mt-1" th:errors="*{title}"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="subtitle" class="form-label">Phụ đề</label>
+                        <label for="subtitle" class="form-label fw-bold">Phụ đề</label>
                         <input type="text" th:field="*{subtitle}" id="subtitle" class="form-control" placeholder="Nhập phụ đề" />
-                        <div class="text-danger" th:errors="*{subtitle}"></div>
+                        <div class="text-danger mt-1" th:errors="*{subtitle}"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="description" class="form-label">Mô tả</label>
+                        <label for="description" class="form-label fw-bold">Mô tả</label>
                         <textarea th:field="*{description}" id="description" class="form-control" rows="5" placeholder="Mô tả sách" required></textarea>
-                        <div class="text-danger" th:errors="*{description}"></div>
+                        <div class="text-danger mt-1" th:errors="*{description}"></div>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label for="isbn" class="form-label">ISBN</label>
-                            <input type="text" th:field="*{isbn}" id="isbn" class="form-control" placeholder="ISBN" />
-                            <div class="text-danger" th:errors="*{isbn}"></div>
+                            <label for="isbn" class="form-label fw-bold">ISBN</label>
+                            <input type="text" th:field="*{isbn}" id="isbn" class="form-control" placeholder="Mã ISBN" />
+                            <div class="text-danger mt-1" th:errors="*{isbn}"></div>
                         </div>
                         <div class="col-md-4">
-                            <label for="publicationDate" class="form-label">Ngày xuất bản</label>
+                            <label for="publicationDate" class="form-label fw-bold">Ngày xuất bản</label>
                             <input type="date" th:field="*{publicationDate}" id="publicationDate" class="form-control" required />
-                            <div class="text-danger" th:errors="*{publicationDate}"></div>
+                            <div class="text-danger mt-1" th:errors="*{publicationDate}"></div>
                         </div>
                         <div class="col-md-4">
-                            <label for="language" class="form-label">Ngôn ngữ</label>
-                            <input type="text" th:field="*{language}" id="language" class="form-control" placeholder="en" />
-                            <div class="text-danger" th:errors="*{language}"></div>
+                            <label for="language" class="form-label fw-bold">Ngôn ngữ</label>
+                            <input type="text" th:field="*{language}" id="language" class="form-control" placeholder="VD: en, vi..." />
+                            <div class="text-danger mt-1" th:errors="*{language}"></div>
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-4">
-                            <label for="pageCount" class="form-label">Số trang</label>
+                            <label for="pageCount" class="form-label fw-bold">Số trang</label>
                             <input type="number" th:field="*{pageCount}" id="pageCount" class="form-control" min="1" />
-                            <div class="text-danger" th:errors="*{pageCount}"></div>
+                            <div class="text-danger mt-1" th:errors="*{pageCount}"></div>
                         </div>
                         <div class="col-md-8">
-                            <label for="coverImage" class="form-label">Ảnh bìa (URL)</label>
-                            <input type="text" th:field="*{coverImage}" id="coverImage" class="form-control" placeholder="https://..." />
-                            <div class="text-danger" th:errors="*{coverImage}"></div>
+                            <label class="form-label fw-bold">Ảnh bìa</label>
+                            
+                            <div th:if="${book != null and book.coverImage != null}" class="mb-2">
+                                <img th:src="${book.coverImage}" alt="Current Cover" class="img-thumbnail" style="height: 120px;">
+                                <p class="small text-muted">Ảnh hiện tại</p>
+                            </div>
+
+                            <input type="file" name="coverFile" id="coverFile" class="form-control" accept="image/png, image/jpeg, image/jpg" />
+                            <small class="text-muted">Bỏ trống nếu muốn giữ nguyên ảnh cũ.</small>
+                            
+                            <input type="hidden" th:field="*{coverImage}" />
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="publisherId" class="form-label">Nhà xuất bản</label>
+                        <label for="publisherId" class="form-label fw-bold">Nhà xuất bản</label>
                         <select th:field="*{publisherId}" id="publisherId" class="form-select">
-                            <option th:value="" disabled selected>Chọn nhà xuất bản</option>
+                            <option value="" disabled selected>Chọn nhà xuất bản</option>
                             <option th:each="publisher : ${publishers}"
-                                th:value="${publisher.id}"
-                                th:text="${publisher.name}"></option>
+                                    th:value="${publisher.id}"
+                                    th:text="${publisher.name}"></option>
                         </select>
-                        <div class="text-danger" th:errors="*{publisherId}"></div>
+                        <div class="text-danger mt-1" th:errors="*{publisherId}"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="authorIds" class="form-label">Tác giả</label>
+                        <label for="authorIds" class="form-label fw-bold">Tác giả</label>
                         <select th:field="*{authorIds}" id="authorIds" class="form-select" multiple size="4">
                             <option th:each="author : ${authors}"
-                                th:value="${author.id}"
-                                th:text="${author.name}"></option>
+                                    th:value="${author.id}"
+                                    th:text="${author.name}"></option>
                         </select>
-                        <div class="text-danger" th:errors="*{authorIds}"></div>
+                        <div class="text-danger mt-1" th:errors="*{authorIds}"></div>
+                        <small class="text-muted">Giữ phím Ctrl (Win) hoặc Cmd (Mac) để chọn nhiều.</small>
                     </div>
 
                     <div class="mb-3">
-                        <label for="categoryIds" class="form-label">Danh mục</label>
+                        <label for="categoryIds" class="form-label fw-bold">Danh mục</label>
                         <select th:field="*{categoryIds}" id="categoryIds" class="form-select" multiple size="4">
                             <option th:each="category : ${categories}"
-                                th:value="${category.id}"
-                                th:text="${category.name}"></option>
+                                    th:value="${category.id}"
+                                    th:text="${category.name}"></option>
                         </select>
-                        <div class="text-danger" th:errors="*{categoryIds}"></div>
+                        <div class="text-danger mt-1" th:errors="*{categoryIds}"></div>
+                        <small class="text-muted">Giữ phím Ctrl (Win) hoặc Cmd (Mac) để chọn nhiều.</small>
                     </div>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Lưu</button>
-                        <a class="btn btn-outline-secondary" th:href="@{/books}">Hủy</a>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary px-5">
+                            <i class="fa fa-save me-1"></i> Lưu Sách
+                        </button>
+                        <a class="btn btn-outline-secondary px-4" th:href="@{/books}">Hủy</a>
                     </div>
                 </form>
             </div>
@@ -115,5 +131,4 @@
 
     <th:block th:replace="~{layout::footer}"></th:block>
 </body>
-
 </html>
