@@ -1,7 +1,6 @@
 package com.group.book_selling.controllers;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +12,7 @@ import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,9 +20,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.group.book_selling.models.Author;
-import com.group.book_selling.repository.IAuthorRepository;
+import com.group.book_selling.services.AuthorService;
 
 @ExtendWith(MockitoExtension.class)
 class AuthorControllerTest {
@@ -30,11 +31,11 @@ class AuthorControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private IAuthorRepository authorRepository;
+    private AuthorService authorService;
 
     @BeforeEach
     void setUp() {
-        AuthorController controller = new AuthorController(authorRepository);
+        AuthorController controller = new AuthorController(authorService);
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
@@ -47,7 +48,7 @@ class AuthorControllerTest {
                 .email("author@example.com")
                 .build();
 
-        when(authorRepository.findAll(any(org.springframework.data.domain.Sort.class))).thenReturn(List.of(author));
+        when(authorService.findAll()).thenReturn(List.of(author));
 
         mockMvc.perform(get("/api/authors"))
                 .andExpect(status().isOk())
@@ -58,7 +59,8 @@ class AuthorControllerTest {
 
     @Test
     void findById_whenMissing_returns404() throws Exception {
-        when(authorRepository.findById(999L)).thenReturn(Optional.empty());
+        when(authorService.findById(999L))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay tac gia"));
 
         mockMvc.perform(get("/api/authors/999"))
                 .andExpect(status().isNotFound());
@@ -66,9 +68,10 @@ class AuthorControllerTest {
 
     @Test
     void create_generatesSlugAndReturns201() throws Exception {
-        when(authorRepository.save(any(Author.class))).thenAnswer(invocation -> {
+        when(authorService.create(any(Author.class))).thenAnswer(invocation -> {
             Author saved = invocation.getArgument(0);
             saved.setId(10L);
+            saved.setSlug("nguyen-nhat-anh");
             return saved;
         });
 
@@ -89,7 +92,7 @@ class AuthorControllerTest {
                 .andExpect(jsonPath("$.slug").value("nguyen-nhat-anh"));
 
         ArgumentCaptor<Author> captor = ArgumentCaptor.forClass(Author.class);
-        verify(authorRepository).save(captor.capture());
-        org.junit.jupiter.api.Assertions.assertEquals("nguyen-nhat-anh", captor.getValue().getSlug());
+            verify(authorService).create(captor.capture());
+            org.junit.jupiter.api.Assertions.assertEquals("Nguyen Nhat Anh", captor.getValue().getName());
     }
 }

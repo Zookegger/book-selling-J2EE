@@ -22,7 +22,7 @@ public class CartController {
 
     private final CartService cartService;
 
-    @GetMapping("/cart")
+    @GetMapping("/view")
     public String showCart(Model model, HttpSession session) {
         Cart cart = CartSessionUtils.getOrCreate(session);
         model.addAttribute("cart", cart);

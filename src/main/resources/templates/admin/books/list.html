@@ -20,13 +20,13 @@
             <a class="btn btn-primary" th:href="@{/books/new}"><i class="fa fa-plus me-1"></i> Thêm sách</a>
         </div>
 
-        <form class="row g-3 mb-4" th:action="@{/admin/books}" method="get">
+        <form class="row g-3 mb-4" th:action="@{/books}" method="get">
             <div class="col-md-8">
                 <input type="text" name="keyword" th:value="${keyword}" class="form-control" placeholder="Tìm sách theo tiêu đề, tác giả, ISBN hoặc nhà xuất bản" />
             </div>
             <div class="col-md-auto d-flex gap-2">
                 <button class="btn btn-outline-primary">Tìm kiếm</button>
-                <a class="btn btn-outline-secondary" th:href="@{/admin/books}">Xóa</a>
+                <a class="btn btn-outline-secondary" th:href="@{/books}">Xóa</a>
             </div>
         </form>
 
@@ -51,7 +51,10 @@
                         </div>
                         <div class="mb-3">
                             <span class="text-muted">Giá bán:</span>
-                            <span th:if="${!#lists.isEmpty(book.formats)}" th:text="${book.formats[0].discountedPrice != null} ? (${book.formats[0].discountedPrice} + ' ' + ${book.formats[0].currency}) : (${book.formats[0].price} + ' ' + ${book.formats[0].currency})"></span>
+                            <span th:if="${!#lists.isEmpty(book.formats)}"
+                                th:attr="data-price-value=${book.formats[0].discountedPrice != null ? book.formats[0].discountedPrice : book.formats[0].price}">
+                                <span th:text="${book.formats[0].discountedPrice != null ? book.formats[0].discountedPrice : book.formats[0].price}"></span>
+                            </span>
                             <span th:if="${#lists.isEmpty(book.formats)}">Chưa có giá</span>
                         </div>
 
