@@ -38,28 +38,9 @@
                 <div class="collapse navbar-collapse" id="navbarMain">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 fw-medium">
                         <li class="nav-item"><a class="nav-link px-2" href="/books">Sách</a></li>
-                        <li class="nav-item"><a class="nav-link px-2" href="/genres">Thể loại</a></li>
+                        <li class="nav-item"><a class="nav-link px-2" href="/categories">Thể loại</a></li>
                         <li class="nav-item"><a class="nav-link px-2" href="/bestsellers">Bán chạy</a></li>
                         <li class="nav-item"><a class="nav-link px-2" href="/about">Giới thiệu</a></li>
-
-                        <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
-                            <a class="nav-link dropdown-toggle nav-admin-link px-2" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-shield-lock-fill me-1"></i>Quản trị
-                            </a>
-                            <ul class="dropdown-menu border-0 shadow-sm" aria-labelledby="adminDropdown">
-                                <li>
-                                    <a class="dropdown-item" th:href="@{/admin/books}">
-                                        <i class="bi bi-book me-2"></i>Quản lý kho sách
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" th:href="@{/admin/categories}">
-                                        <i class="bi bi-tags me-2"></i>Quản lý thể loại
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                            </ul>
-                        </li>
                     </ul>
 
                     <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
@@ -84,7 +65,7 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                                     <li sec:authorize="hasRole('ADMIN')">
-                                        <a class="dropdown-item fw-bold text-danger" th:href="@{/admin/books}">Khu vực Admin</a>
+                                        <a class="dropdown-item fw-bold text-danger" th:href="@{/books}">Khu vực Admin</a>
                                     </li>
                                     <li sec:authorize="hasRole('ADMIN')"><hr class="dropdown-divider"></li>
                                     
@@ -119,7 +100,7 @@
                     <p class="text-uppercase fw-semibold mb-3">Cửa hàng</p>
                     <ul class="list-unstyled lh-lg mb-0">
                         <li><a href="/books" class="text-white-50 text-decoration-none">Tất cả sách</a></li>
-                        <li><a href="/genres" class="text-white-50 text-decoration-none">Thể loại</a></li>
+                        <li><a href="/categories" class="text-white-50 text-decoration-none">Thể loại</a></li>
                         <li><a href="/bestsellers" class="text-white-50 text-decoration-none">Bán chạy</a></li>
                     </ul>
                 </div>
