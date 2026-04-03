@@ -373,7 +373,7 @@ private void applyRequestToBook(Book target, BookRequest request) {
                 .map(c -> new CategoryWithCount(c.getId(), c.getName(), bookRepository.countByCategories_Id(c.getId())))
                 .toList();
 
-        model.addAttribute("categoryWishowEditFormthCount", categoryWithCount);
+        model.addAttribute("categoryWithCount", categoryWithCount);
         model.addAttribute("selectedCategoryIds", List.of());
     }
 
