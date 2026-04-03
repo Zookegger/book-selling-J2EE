@@ -1,13 +1,20 @@
 package com.group.book_selling.controllers;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -16,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -27,6 +35,7 @@ import com.group.book_selling.repository.IAuthorRepository;
 import com.group.book_selling.repository.IBookRepository;
 import com.group.book_selling.repository.ICategoryRepository;
 import com.group.book_selling.repository.IPublisherRepository;
+import com.group.book_selling.services.BookService;
 import com.group.book_selling.utils.SlugUtils;
 
 import jakarta.validation.Valid;
@@ -42,6 +51,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BookController {
 
+    private final BookService bookService; 
     private final IBookRepository bookRepository;
     private final IAuthorRepository authorRepository;
     private final ICategoryRepository categoryRepository;
@@ -97,34 +107,71 @@ public class BookController {
                 .toList();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         if (!model.containsAttribute("bookRequest")) {
             model.addAttribute("bookRequest", emptyBookRequest());
         }
         addReferenceData(model);
+        
+        model.addAttribute("book", null); 
+        model.addAttribute("pageTitle", "Thêm sách mới");
+        
+        return "books/form";
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+@PostMapping("/new")
+public String create(@Valid @ModelAttribute("bookRequest") BookRequest request,
+        BindingResult result,
+        @RequestParam(value = "coverFile", required = false) MultipartFile coverFile, 
+        Model model,
+        RedirectAttributes redirectAttributes) {
+
+    if (result.hasErrors()) {
+        addReferenceData(model);
+        model.addAttribute("book", null); 
         model.addAttribute("pageTitle", "Thêm sách mới");
         return "books/form";
     }
 
-    @PostMapping("/new")
-    public String create(@Valid @ModelAttribute("bookRequest") BookRequest request,
-            BindingResult result,
-            Model model,
-            RedirectAttributes redirectAttributes) {
-        if (result.hasErrors()) {
-            addReferenceData(model);
-            return "books/form";
-        }
-
+    try {
         Book book = new Book();
         applyRequestToBook(book, request);
-        bookRepository.save(book);
 
+        // XỬ LÝ LƯU FILE
+        if (coverFile != null && !coverFile.isEmpty()) {
+            String originalFileName = StringUtils.cleanPath(coverFile.getOriginalFilename());
+            String fileName = System.currentTimeMillis() + "_" + originalFileName; 
+            String uploadDir = "uploads/";
+            Path uploadPath = Paths.get(uploadDir);
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            try (InputStream inputStream = coverFile.getInputStream()) {
+                Path filePath = uploadPath.resolve(fileName);
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            // Gán đường dẫn ảnh mới vào database
+            book.setCoverImage("/uploads/" + fileName);
+        }
+
+        bookRepository.save(book);
         redirectAttributes.addFlashAttribute("successMessage", "Tạo sách thành công.");
         return "redirect:/books/" + book.getSlug();
-    }
 
+    } catch (Exception e) {
+        e.printStackTrace(); // In ra console để bạn xem nếu vẫn bị lỗi 500
+        model.addAttribute("errorMessage", "Lỗi lưu file: " + e.getMessage());
+        addReferenceData(model);
+        model.addAttribute("book", null);
+        model.addAttribute("pageTitle", "Thêm sách mới");
+        return "books/form";
+    }
+}
     @GetMapping("/{slug}")
     public String detail(@PathVariable String slug, Model model) {
         Book book = bookRepository.findBySlug(slug)
@@ -133,41 +180,81 @@ public class BookController {
         return "books/detail";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{slug}/edit")
-    public String showEditForm(@PathVariable String slug, Model model) {
-        Book book = bookRepository.findBySlug(slug)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay sach"));
-        if (!model.containsAttribute("bookRequest")) {
-            model.addAttribute("bookRequest", createRequest(book));
-        }
+public String showEditForm(@PathVariable String slug, Model model) {
+    Book book = bookRepository.findBySlug(slug)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sách"));
+
+    // Nếu chưa có bookRequest trong model (lần đầu vào trang edit)
+    if (!model.containsAttribute("bookRequest")) {
+        model.addAttribute("bookRequest", createRequest(book));
+    }
+    
+    addReferenceData(model);
+    model.addAttribute("book", book);
+    model.addAttribute("pageTitle", "Chỉnh sửa sách: " + book.getTitle());
+    
+    return "books/form";
+}
+@PreAuthorize("hasRole('ADMIN')")
+@PostMapping("/{slug}/edit")
+public String update(@PathVariable String slug,
+        @Valid @ModelAttribute("bookRequest") BookRequest request,
+        BindingResult result,
+        @RequestParam(value = "coverFile", required = false) MultipartFile coverFile, // PHẢI thêm tham số này
+        Model model,
+        RedirectAttributes redirectAttributes) {
+        
+    Book existing = bookRepository.findBySlug(slug)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sách"));
+
+    if (result.hasErrors()) {
         addReferenceData(model);
-        model.addAttribute("book", book);
+        model.addAttribute("book", existing);
         model.addAttribute("pageTitle", "Chỉnh sửa sách");
         return "books/form";
     }
 
-    @PostMapping("/{slug}/edit")
-    public String update(@PathVariable String slug,
-            @Valid @ModelAttribute("bookRequest") BookRequest request,
-            BindingResult result,
-            Model model,
-            RedirectAttributes redirectAttributes) {
-        Book existing = bookRepository.findBySlug(slug)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay sach"));
+    try {
+        // 1. Cập nhật các thông tin cơ bản từ form
+        applyRequestToBook(existing, request);
 
-        if (result.hasErrors()) {
-            addReferenceData(model);
-            model.addAttribute("book", existing);
-            return "books/form";
+        // 2. Xử lý nếu người dùng có chọn ảnh mới
+        if (coverFile != null && !coverFile.isEmpty()) {
+            String originalFileName = StringUtils.cleanPath(coverFile.getOriginalFilename());
+            String fileName = System.currentTimeMillis() + "_" + originalFileName; 
+            String uploadDir = "uploads/";
+            Path uploadPath = Paths.get(uploadDir);
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            try (InputStream inputStream = coverFile.getInputStream()) {
+                Path filePath = uploadPath.resolve(fileName);
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            
+            // Cập nhật đường dẫn ảnh mới
+            existing.setCoverImage("/uploads/" + fileName);
         }
 
-        applyRequestToBook(existing, request);
+        // 3. Lưu vào Database
         Book updated = bookRepository.save(existing);
 
         redirectAttributes.addFlashAttribute("successMessage", "Cập nhật sách thành công.");
         return "redirect:/books/" + updated.getSlug();
-    }
 
+    } catch (Exception e) {
+        e.printStackTrace();
+        model.addAttribute("errorMessage", "Lỗi khi cập nhật ảnh: " + e.getMessage());
+        addReferenceData(model);
+        model.addAttribute("book", existing);
+        return "books/form";
+    }
+}
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{slug}/delete")
     public String delete(@PathVariable String slug, RedirectAttributes redirectAttributes) {
         Book book = bookRepository.findBySlug(slug)
@@ -178,8 +265,21 @@ public class BookController {
     }
 
     private BookRequest emptyBookRequest() {
-        return new BookRequest("", "", "", "", null, "en", null, null, null, null, null, null);
-    }
+    return new BookRequest(
+            "",                 // title
+            "",                 // subtitle
+            "",                 // description
+            "",                 // isbn
+            null,               // publicationDate
+            "en",               // language
+            null,               // pageCount
+            null,               // publisherId
+            new ArrayList<>(),  // authorIds (Sửa null thành ArrayList rỗng)
+            new ArrayList<>(),  // categoryIds (Sửa null thành ArrayList rỗng)
+            null,               // coverImage
+            new ArrayList<>()   // formats (Sửa null thành ArrayList rỗng)
+    );
+}
 
     private BookRequest createRequest(Book book) {
         return new BookRequest(
@@ -203,22 +303,25 @@ public class BookController {
         model.addAttribute("categories", categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "name")));
     }
 
-    private void applyRequestToBook(Book target, BookRequest request) {
-        target.setTitle(request.title());
-        target.setSlug(SlugUtils.slugify(request.title()));
-        target.setSubtitle(request.subtitle());
-        target.setDescription(request.description());
-        target.setIsbn(request.isbn());
-        target.setPublicationDate(request.publicationDate());
-        target.setLanguage(request.language());
-        target.setPageCount(request.pageCount());
-        target.setCoverImage(request.coverImage());
+private void applyRequestToBook(Book target, BookRequest request) {
+    target.setTitle(request.title());
+    target.setSlug(SlugUtils.slugify(request.title()));
+    target.setSubtitle(request.subtitle());
+    target.setDescription(request.description());
+    target.setIsbn(request.isbn());
+    target.setPublicationDate(request.publicationDate());
+    target.setLanguage(request.language());
+    target.setPageCount(request.pageCount());
 
-        target.setPublisher(resolvePublisher(request.publisherId()));
-        target.setAuthors(resolveAuthors(request.authorIds()));
-        target.setCategories(resolveCategories(request.categoryIds()));
-        target.setFormats(request.formats() == null ? new ArrayList<>() : new ArrayList<>(request.formats()));
+    if (request.coverImage() != null && !request.coverImage().isBlank()) {
+        target.setCoverImage(request.coverImage());
     }
+
+    target.setPublisher(resolvePublisher(request.publisherId()));
+    target.setAuthors(resolveAuthors(request.authorIds()));
+    target.setCategories(resolveCategories(request.categoryIds()));
+    target.setFormats(request.formats() == null ? new ArrayList<>() : new ArrayList<>(request.formats()));
+}
 
     private Publisher resolvePublisher(Long publisherId) {
         if (publisherId == null) {
@@ -270,7 +373,7 @@ public class BookController {
                 .map(c -> new CategoryWithCount(c.getId(), c.getName(), bookRepository.countByCategories_Id(c.getId())))
                 .toList();
 
-        model.addAttribute("categoryWithCount", categoryWithCount);
+        model.addAttribute("categoryWishowEditFormthCount", categoryWithCount);
         model.addAttribute("selectedCategoryIds", List.of());
     }
 

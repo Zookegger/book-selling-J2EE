@@ -27,43 +27,37 @@ public class UniqueIsbnValidator implements ConstraintValidator<UniqueIsbn, Stri
             return true;
         }
 
-        if (bookRepository == null) {
-            throw new IllegalStateException("IBookRepository not injected into UniqueIsbnValidator");
-        }
-
+        // Tìm xem ISBN này đã có ai dùng chưa
         Optional<Book> existingBook = bookRepository.findByIsbn(isbn);
+        
+        // Nếu chưa ai dùng -> Hợp lệ luôn
         if (existingBook.isEmpty()) {
             return true;
         }
 
-        Long currentBookId = extractPathBookId();
-        if (currentBookId == null) {
-            throw new IllegalStateException("Failed to extract book ID from request path");
+        // Nếu ĐÃ CÓ người dùng, ta phải kiểm tra xem đó có phải là CHÍNH NÓ không
+        String currentSlug = extractPathSlug();
+
+        // Nếu không có slug trên URL (nghĩa là đang là trang Create mới) 
+        // mà ISBN lại tồn tại -> Chắc chắn là trùng của người khác -> false
+        if (currentSlug == null) {
+            return false;
         }
 
-        Long foundId = existingBook.get().getId();
-        return foundId != null && foundId.equals(currentBookId);
+        // Nếu đang Edit: ISBN trùng nhưng thuộc về cuốn sách có Slug này -> Hợp lệ
+        return existingBook.get().getSlug().equals(currentSlug);
     }
 
-    private Long extractPathBookId() {
-        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attrs)) {
-            return null;
-        }
+    private String extractPathSlug() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs == null) return null;
 
-        Object value = attrs.getRequest().getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-        if (!(value instanceof Map<?, ?> pathVariables)) {
-            return null;
-        }
+        Map<String, String> pathVariables = (Map<String, String>) attrs.getRequest()
+                .getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        
+        if (pathVariables == null) return null;
 
-        Object idRaw = pathVariables.get("id");
-        if (idRaw == null) {
-            return null;
-        }
-
-        try {
-            return Long.valueOf(idRaw.toString());
-        } catch (NumberFormatException ex) {
-            return null;
-        }
+        // Lấy "slug" vì URL của bạn là /books/{slug}/edit
+        return pathVariables.get("slug");
     }
 }
