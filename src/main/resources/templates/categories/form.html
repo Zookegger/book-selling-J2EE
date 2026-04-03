@@ -10,7 +10,7 @@
 
     <main class="container-md py-5" style="max-width: 800px;">
         <div class="mb-4">
-            <a th:href="@{/admin/categories}" class="btn btn-sm btn-link text-decoration-none text-secondary p-0">
+            <a th:href="@{/categories}" class="btn btn-sm btn-link text-decoration-none text-secondary p-0">
                 <i class="fa fa-arrow-left me-1"></i> Quay lại danh sách
             </a>
         </div>
@@ -24,7 +24,7 @@
             </div>
             
             <div class="card-body p-4 p-md-5">
-                <form th:action="@{/admin/categories/save}" th:object="${category}" method="post">
+                <form th:action="@{/categories/save}" th:object="${category}" method="post">
                     <input type="hidden" th:field="*{id}" />
 
                     <div class="mb-4">
@@ -67,7 +67,7 @@
                         <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow-sm">
                             <i class="fa fa-save me-2"></i> Lưu thay đổi
                         </button>
-                        <a th:href="@{/admin/categories}" class="btn btn-light px-4 py-2">Hủy bỏ</a>
+                        <a th:href="@{/categories}" class="btn btn-light px-4 py-2">Hủy bỏ</a>
                     </div>
                 </form>
             </div>

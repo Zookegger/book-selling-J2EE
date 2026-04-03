@@ -39,7 +39,7 @@
 									</div>
 								</div>
 							</td>
-							<td class="text-end" th:text="${item.price}">0</td>
+							<td class="text-end" th:insert="~{books/components/price :: price(price=${item.price}, currency='VND')}"></td>
 							<td>
 								<form th:action="@{/cart/update}" method="post" class="d-flex gap-2 align-items-center">
 									<input type="hidden" name="bookId" th:value="${item.book.id}" />
@@ -48,7 +48,7 @@
 									<input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 								</form>
 							</td>
-							<td class="text-end" th:text="${item.price * item.quantity}">0</td>
+							<td class="text-end" th:insert="~{books/components/price :: price(price=${item.price}, quantity=${item.quantity}, currency='VND')}"></td>
 							<td class="text-end">
 								<form th:action="@{/cart/remove}" method="post">
 									<input type="hidden" name="bookId" th:value="${item.book.id}" />
@@ -66,7 +66,7 @@
 					<a th:href="@{/books}" class="btn btn-outline-primary">Tiếp tục mua sắm</a>
 				</div>
 				<div class="text-end">
-					<div class="mb-2">Tổng: <span class="fs-4 fw-bold" th:text="${total}">0</span></div>
+					<div class="mb-2">Tổng: <span class="fs-4 fw-bold" th:insert="~{books/components/price :: price(price=${total}, currency='VND')}"></span></div>
 					<a class="btn btn-primary btn-lg" th:href="@{/checkout}">Thanh toán</a>
 				</div>
 			</div>

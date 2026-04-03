@@ -1,23 +1,24 @@
 package com.group.book_selling.controllers;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.group.book_selling.models.Publisher;
-import com.group.book_selling.repository.IPublisherRepository;
+import com.group.book_selling.services.PublisherService;
 
 @ExtendWith(MockitoExtension.class)
 class PublisherControllerTest {
@@ -25,25 +26,23 @@ class PublisherControllerTest {
     private MockMvc mockMvc;
 
         @Mock
-    private IPublisherRepository publisherRepository;
+        private PublisherService publisherService;
 
         @BeforeEach
         void setUp() {
-                PublisherController controller = new PublisherController(publisherRepository);
+                PublisherController controller = new PublisherController(publisherService);
                 this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         }
 
     @Test
     void update_existingPublisher_returns200() throws Exception {
-        Publisher existing = Publisher.builder()
-                .id(3L)
-                .name("Old Publisher")
-                .slug("old-publisher")
-                .contactEmail("old@example.com")
-                .build();
-
-        when(publisherRepository.findById(3L)).thenReturn(Optional.of(existing));
-        when(publisherRepository.save(any(Publisher.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(publisherService.update(eq(3L), any(Publisher.class))).thenAnswer(invocation -> {
+                        Publisher request = invocation.getArgument(1);
+                        request.setId(3L);
+                        request.setSlug("nha-xuat-ban-tre");
+                        request.setActive(true);
+                        return request;
+                });
 
         String body = """
                 {
@@ -66,7 +65,8 @@ class PublisherControllerTest {
 
     @Test
     void update_whenMissing_returns404() throws Exception {
-        when(publisherRepository.findById(999L)).thenReturn(Optional.empty());
+        when(publisherService.update(eq(999L), any(Publisher.class)))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay nha xuat ban"));
 
         String body = """
                 {

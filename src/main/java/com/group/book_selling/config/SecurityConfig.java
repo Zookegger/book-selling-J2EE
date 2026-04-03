@@ -44,7 +44,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**").hasRole(UserRole.ADMIN.name())
                         .requestMatchers("/books/new", "/books/*/edit", "/books/*/delete").hasRole(UserRole.ADMIN.name())
-                        .requestMatchers("/api/categories/**").hasRole(UserRole.ADMIN.name())
                         .requestMatchers(
                                 "/",
                                 "/login",
@@ -61,7 +60,7 @@ public class SecurityConfig {
                                 "/books/search",
                                 "/books/autocomplete",
                                 "/books/*",
-                                "/genres")
+                                "/categories")
                         .permitAll()
                         .requestMatchers("/user/**")
                         .hasAnyRole(UserRole.ADMIN.name(), UserRole.USER.name())
