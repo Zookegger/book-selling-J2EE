@@ -25,7 +25,7 @@ public record BookRequest(
         @NotBlank(message = "Mô tả không được để trống") 
         String description,
         
-        String isbn,
+        @UniqueIsbn String isbn,
         
         @NotNull(message = "Ngày xuất bản không được để trống")
         @DateTimeFormat(pattern = "yyyy-MM-dd") 
