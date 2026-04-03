@@ -45,7 +45,7 @@ class BookControllerTest {
 
     @BeforeEach
     void setUp() {
-        BookController controller = new BookController(null, bookRepository, authorRepository, categoryRepository, publisherRepository);
+        BookController controller = new BookController(bookRepository, authorRepository, categoryRepository, publisherRepository);
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
