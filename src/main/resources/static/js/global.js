@@ -44,7 +44,18 @@ function formatPrice(value) {
  * @param {HTMLElement} root - Phần tử gốc để tìm kiếm các phần tử có thuộc tính data-price-value.
  */
 function applyPriceFormatting(root = document) {
-    root.querySelectorAll('[data-price-value]').forEach(element => {
+    const elements = [];
+
+    // Nếu phần tử gốc có thuộc tính data-price-value, thêm nó vào danh sách cần định dạng.
+    if (root instanceof Element && root.hasAttribute('data-price-value')) {
+        elements.push(root);
+    }
+
+    // Tìm tất cả phần tử con có thuộc tính data-price-value và thêm chúng vào danh sách cần định dạng.
+    root.querySelectorAll('[data-price-value]').forEach(el => elements.push(el));
+
+    // Áp dụng định dạng giá tiền cho tất cả phần tử trong danh sách.
+    elements.forEach(element => {
         const rawValue = element.dataset.priceValue;
         const quantity = element.dataset.priceQuantity ? Number(element.dataset.priceQuantity) : 1;
         const amount = Number(rawValue);

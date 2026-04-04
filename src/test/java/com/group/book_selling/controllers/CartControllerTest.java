@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -88,19 +89,42 @@ public class CartControllerTest {
 	}
 
 	@Test
-	void updateCart_success_callsServiceAndRedirects() throws Exception {
+	void updateCart_success_returnsJsonAndCallsService() throws Exception {
 		MockHttpSession session = new MockHttpSession();
+		Cart cart = new Cart();
+		session.setAttribute("cart", cart);
 
 		mockMvc.perform(post("/cart/update")
 				.session(session)
 				.param("bookId", "10")
 				.param("sku", "SKU-PHYSICAL")
 				.param("qty", "4"))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("/cart/view"));
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.success").value(true))
+				.andExpect(jsonPath("$.qty").value(4))
+				.andExpect(jsonPath("$.subtotal").exists())
+				.andExpect(jsonPath("$.tax").exists())
+				.andExpect(jsonPath("$.total").exists());
 
 		verify(cartService).updateQty(any(Cart.class), eq(10L), eq("SKU-PHYSICAL"), eq(4));
 		assertNotNull(session.getAttribute("cart"));
+	}
+
+	@Test
+	void updateCart_whenServiceThrows_returnsBadRequestJson() throws Exception {
+		MockHttpSession session = new MockHttpSession();
+		doThrow(new IllegalArgumentException("Invalid quantity"))
+				.when(cartService)
+				.updateQty(any(Cart.class), eq(10L), eq("SKU-PHYSICAL"), eq(0));
+
+		mockMvc.perform(post("/cart/update")
+				.session(session)
+				.param("bookId", "10")
+				.param("sku", "SKU-PHYSICAL")
+				.param("qty", "0"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.success").value(false))
+				.andExpect(jsonPath("$.message").value("Invalid quantity"));
 	}
 
 	@Test
