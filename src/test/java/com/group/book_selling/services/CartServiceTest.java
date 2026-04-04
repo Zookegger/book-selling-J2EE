@@ -20,7 +20,7 @@ import com.group.book_selling.models.Book;
 import com.group.book_selling.models.BookFormat;
 import com.group.book_selling.models.BookFormatType;
 import com.group.book_selling.models.Cart;
-import com.group.book_selling.repository.IBookRepository;
+import com.group.book_selling.repositories.IBookRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 

@@ -10,7 +10,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerMapping;
 
 import com.group.book_selling.models.Book;
-import com.group.book_selling.repository.IBookRepository;
+import com.group.book_selling.repositories.IBookRepository;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

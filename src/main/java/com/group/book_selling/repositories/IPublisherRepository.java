@@ -1,4 +1,4 @@
-package com.group.book_selling.repository;
+package com.group.book_selling.repositories;
 
 import java.util.Optional;
 

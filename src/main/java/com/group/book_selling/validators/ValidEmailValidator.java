@@ -2,7 +2,7 @@ package com.group.book_selling.validators;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.group.book_selling.repository.IUserRepository;
+import com.group.book_selling.repositories.IUserRepository;
 
 import jakarta.validation.ConstraintValidator;
 
