@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.group.book_selling.models.Category;
-import com.group.book_selling.repository.ICategoryRepository;
+import com.group.book_selling.repositories.ICategoryRepository;
 import com.group.book_selling.utils.SlugUtils;
 
 import lombok.RequiredArgsConstructor;

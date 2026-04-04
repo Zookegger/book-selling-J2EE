@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.group.book_selling.models.CustomUserDetail;
 import com.group.book_selling.models.User;
-import com.group.book_selling.repository.IUserRepository;
+import com.group.book_selling.repositories.IUserRepository;
 
 /**
  *

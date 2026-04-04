@@ -18,10 +18,10 @@ import com.group.book_selling.models.Author;
 import com.group.book_selling.models.Book;
 import com.group.book_selling.models.Category;
 import com.group.book_selling.models.Publisher;
-import com.group.book_selling.repository.IAuthorRepository;
-import com.group.book_selling.repository.IBookRepository;
-import com.group.book_selling.repository.ICategoryRepository;
-import com.group.book_selling.repository.IPublisherRepository;
+import com.group.book_selling.repositories.IAuthorRepository;
+import com.group.book_selling.repositories.IBookRepository;
+import com.group.book_selling.repositories.ICategoryRepository;
+import com.group.book_selling.repositories.IPublisherRepository;
 import com.group.book_selling.utils.SlugUtils;
 
 import lombok.RequiredArgsConstructor;
