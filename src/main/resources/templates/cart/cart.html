@@ -1,22 +1,40 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<th:block th:replace="~{layout :: link-css}"></th:block>
 	<title>Giỏ hàng — LuminaBook</title>
 	<style>
-		.cart-thumb { width: 64px; height: auto; object-fit: cover; }
-		.quantity-input { width: 80px; }
+		.cart-thumb {
+			width: 64px;
+			height: 64px;
+			object-fit: cover;
+		}
+
+		.quantity-input {
+			width: 80px;
+		}
 	</style>
 </head>
+
 <body>
 	<th:block th:replace="~{layout::header}"></th:block>
 
 	<main class="container-xl flex-grow-1 my-4">
 		<h1 class="mb-4">Giỏ hàng</h1>
 
-		<div th:if="${items != null and !#lists.isEmpty(items)}">
+		<div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+			<span th:text="${success}"></span>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+		<div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+			<span th:text="${error}"></span>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+
+		<div th:if="${cart != null and !cart.isEmpty()}">
 			<div class="table-responsive">
 				<table class="table align-middle">
 					<thead>
@@ -29,31 +47,51 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr th:each="item : ${items}">
+						<tr th:each="item : ${cart.getItems()}">
 							<td>
 								<div class="d-flex align-items-center gap-3">
-									<img th:src="${item.book.thumbnailUrl}" alt="" class="cart-thumb rounded">
+									<img th:src="${item.coverImage}" alt="" class="cart-thumb rounded"
+										th:if="${item.coverImage != null and !item.coverImage.isBlank()}">
+									<div th:if="${item.coverImage == null or item.coverImage.isBlank()}"
+										class="cart-thumb rounded bg-light d-flex align-items-center justify-content-center text-muted small">
+										<i class="fa fa-book"></i>
+									</div>
 									<div>
-										<a th:href="@{/books/{id}(id=${item.book.id})}" th:text="${item.book.title}">Tên sách</a>
-										<div class="text-muted small" th:text="${item.book.author}">Tác giả</div>
+										<a th:href="@{/books/{slug}(slug=${item.slug})}" th:text="${item.title}"
+											class="text-decoration-none">Tên sách</a>
+										<div class="text-muted small" th:switch="${item.formatType.name()}">
+											<span th:case="'PHYSICAL'">Bản in</span>
+											<span th:case="'DIGITAL'">eBook</span>
+											<span th:case="'AUDIOBOOK'">Audiobook</span>
+											<span th:case="*">Khác</span>
+										</div>
 									</div>
 								</div>
 							</td>
-							<td class="text-end" th:insert="~{books/components/price :: price(price=${item.price}, currency='VND')}"></td>
+							<td class="text-end"
+								th:insert="~{books/components/price :: price(price=${item.unitPrice}, quantity=${item.qty}, currency='VND')}">
+							</td>
 							<td>
-								<form th:action="@{/cart/update}" method="post" class="d-flex gap-2 align-items-center">
-									<input type="hidden" name="bookId" th:value="${item.book.id}" />
-									<input type="number" name="quantity" min="1" class="form-control form-control-sm quantity-input" th:value="${item.quantity}" />
+								<form th:action="@{/cart/update}" method="post" class="d-flex gap-2 align-items-center"
+									th:if="${item.formatType.name() == 'PHYSICAL'}">
+									<input type="hidden" name="bookId" th:value="${item.bookId}" />
+									<input type="hidden" name="sku" th:value="${item.sku}" />
+									<input type="number" name="qty" min="1"
+										class="form-control form-control-sm quantity-input" th:value="${item.qty}" />
 									<button class="btn btn-sm btn-outline-secondary" type="submit">Cập nhật</button>
-									<input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+									<input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+										th:value="${_csrf.token}" />
 								</form>
 							</td>
-							<td class="text-end" th:insert="~{books/components/price :: price(price=${item.price}, quantity=${item.quantity}, currency='VND')}"></td>
+							<td class="text-end"
+								th:insert="~{books/components/price :: price(price=${item.unitPrice}, quantity=${item.qty}, currency='VND')}">
+							</td>
 							<td class="text-end">
 								<form th:action="@{/cart/remove}" method="post">
-									<input type="hidden" name="bookId" th:value="${item.book.id}" />
+									<input type="hidden" name="sku" th:value="${item.sku}" />
 									<button class="btn btn-sm btn-danger" type="submit">Xóa</button>
-									<input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+									<input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+										th:value="${_csrf.token}" />
 								</form>
 							</td>
 						</tr>
@@ -61,18 +99,49 @@
 				</table>
 			</div>
 
-			<div class="d-flex justify-content-between align-items-center mt-4">
-				<div>
-					<a th:href="@{/books}" class="btn btn-outline-primary">Tiếp tục mua sắm</a>
+			<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mt-5 pt-4 border-top">
+
+				<div class="mb-4 mb-md-0 text-start">
+					<a th:href="@{/books}"
+						class="btn btn-outline-secondary px-4 fw-medium text-uppercase small tracking-wide rounded-pill">
+						<i class="fa fa-arrow-left me-2"></i>Tiếp tục mua sắm
+					</a>
 				</div>
-				<div class="text-end">
-					<div class="mb-2">Tổng: <span class="fs-4 fw-bold" th:insert="~{books/components/price :: price(price=${total}, currency='VND')}"></span></div>
-					<a class="btn btn-primary btn-lg" th:href="@{/checkout}">Thanh toán</a>
+
+				<div class="text-end" style="min-width: 340px;">
+
+					<div class="d-flex justify-content-between align-items-center mb-2">
+						<span class="text-muted fw-medium">Tạm tính:</span>
+						<span class="fw-semibold text-dark"
+							th:insert="~{books/components/price :: price(price=${subtotal}, quantity=1, currency='VND')}"></span>
+					</div>
+
+					<div class="d-flex justify-content-between align-items-center mb-3">
+						<span class="text-muted fw-medium d-flex align-items-center">
+							VAT:
+							<i class="fa fa-circle-info ms-2 text-primary opacity-50" data-bs-toggle="tooltip"
+								data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+								title="VAT theo nhóm nội dung sách: 0% (giáo trình/chính trị/pháp luật/khoa học-kỹ thuật...) hoặc 5%."></i>
+						</span>
+						<span class="fw-semibold text-dark"
+							th:insert="~{books/components/price :: price(price=${tax}, quantity=1, currency='VND')}"></span>
+					</div>
+
+					<div class="d-flex justify-content-between align-items-center pt-3 border-top mb-4">
+						<span class="fs-5 fw-bold text-dark">Tổng thanh toán:</span>
+						<span class="fs-3 fw-black text-primary fw-bold"
+							th:insert="~{books/components/price :: price(price=${total}, quantity=1, currency='VND')}"></span>
+					</div>
+
+					<a class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-3 py-3 text-uppercase tracking-wide"
+						th:href="@{/checkout}">
+						Thanh toán <i class="fa fa-arrow-right ms-2"></i>
+					</a>
 				</div>
 			</div>
 		</div>
 
-		<div th:if="${items == null or #lists.isEmpty(items)}" class="text-center py-5">
+		<div th:if="${cart == null or cart.isEmpty()}" class="text-center py-5">
 			<p class="fs-4">Giỏ hàng của bạn đang trống</p>
 			<a th:href="@{/books}" class="btn btn-outline-primary">Bắt đầu mua sắm</a>
 		</div>
@@ -80,4 +149,5 @@
 
 	<th:block th:replace="~{layout::footer}"></th:block>
 </body>
+
 </html>

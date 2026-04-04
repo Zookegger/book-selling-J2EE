@@ -55,7 +55,7 @@ class HomeControllerTest {
 
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("books/"))
+                .andExpect(view().name("index"))
                 .andExpect(model().attributeExists("popularByCategory"));
     }
 }

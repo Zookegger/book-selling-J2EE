@@ -45,6 +45,6 @@ public class CartService {
                 .filter(f -> f.getSku().equals(sku))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Format '" + sku + "' does not belong to this book."));
+                        "Thể loại không tồn tại."));
     }
 }
