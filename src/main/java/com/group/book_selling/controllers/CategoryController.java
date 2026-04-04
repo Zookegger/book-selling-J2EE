@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.group.book_selling.models.Book;
 import com.group.book_selling.models.Category;
+import com.group.book_selling.services.BookService;
 import com.group.book_selling.services.CategoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,11 +29,33 @@ import lombok.RequiredArgsConstructor;
 public class CategoryController {
 
     private final CategoryService categoryService;
+    private final BookService bookService;
 
     /** Trang danh sach. */
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("categories", categoryService.findAllForAdminList());
+        List<Category> allCategories = categoryService.findAll();
+        model.addAttribute("categories", allCategories); 
+
+        return "categories/list";
+    }
+
+    @GetMapping("/{slug}")
+    public String categoryBooks(
+            @PathVariable String slug,
+            @RequestParam(required = false) String keyword,
+            Model model) {
+
+        Category category = categoryService.findBySlug(slug);
+        List<Book> books = bookService.findBooksByCategorySlug(slug);
+        List<Category> allCategories = categoryService.findAll();
+
+        model.addAttribute("category", category);
+        model.addAttribute("books", books);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedCategory", slug);
+        model.addAttribute("categories", allCategories); // The data for your filter UI
+
         return "categories/list";
     }
 

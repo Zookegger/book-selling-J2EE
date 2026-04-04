@@ -22,23 +22,19 @@ public class CategoryService {
     private final ICategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
-    public List<Category> findAllForApi() {
-        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "orderIndex").and(Sort.by("id")));
-    }
-
-    @Transactional(readOnly = true)
-    public List<Category> findAllForAdminList() {
-        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "orderIndex"));
-    }
-
-    @Transactional(readOnly = true)
     public List<Category> findAll() {
-        return categoryRepository.findAll();
+        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "orderIndex").and(Sort.by("name")));
     }
 
     @Transactional(readOnly = true)
     public Category findById(Long id) {
         return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay danh muc"));
+    }
+
+    @Transactional(readOnly = true)
+    public Category findBySlug(String slug) {
+        return categoryRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay danh muc"));
     }
 
@@ -53,7 +49,8 @@ public class CategoryService {
     public Category create(Category request) {
         request.setId(null);
         request.setSlug(SlugUtils.slugify(request.getName()));
-        request.setAncestors(request.getAncestors() == null ? new ArrayList<>() : new ArrayList<>(request.getAncestors()));
+        request.setAncestors(
+                request.getAncestors() == null ? new ArrayList<>() : new ArrayList<>(request.getAncestors()));
         return categoryRepository.save(request);
     }
 
@@ -65,7 +62,8 @@ public class CategoryService {
         existing.setSlug(SlugUtils.slugify(request.getName()));
         existing.setDescription(request.getDescription());
         existing.setParent(request.getParent());
-        existing.setAncestors(request.getAncestors() == null ? new ArrayList<>() : new ArrayList<>(request.getAncestors()));
+        existing.setAncestors(
+                request.getAncestors() == null ? new ArrayList<>() : new ArrayList<>(request.getAncestors()));
         existing.setOrderIndex(request.getOrderIndex());
 
         return categoryRepository.save(existing);
@@ -73,7 +71,8 @@ public class CategoryService {
 
     @Transactional
     public Category save(Category category) {
-        category.setAncestors(category.getAncestors() == null ? new ArrayList<>() : new ArrayList<>(category.getAncestors()));
+        category.setAncestors(
+                category.getAncestors() == null ? new ArrayList<>() : new ArrayList<>(category.getAncestors()));
         return categoryRepository.save(category);
     }
 
