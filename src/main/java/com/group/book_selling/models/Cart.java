@@ -106,10 +106,9 @@ public class Cart implements Serializable {
     }
 
     /**
-     * Trả về tổng số mặt hàng trong giỏ hàng (tổng số lượng, không phải số loại sản
-     * phẩm).
+     * Trả về số mặt hàng phân biệt trong giỏ hàng (số SKU/số loại sản phẩm khác nhau), không phải tổng số lượng của tất cả sản phẩm.
      * 
-     * @return Tổng số lượng mặt hàng trong giỏ hàng
+     * @return Số mặt hàng phân biệt trong giỏ hàng
      */
     public int size() {
         return items.size();

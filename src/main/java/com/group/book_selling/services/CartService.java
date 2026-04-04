@@ -44,7 +44,6 @@ public class CartService {
         return book.getFormats().stream()
                 .filter(f -> f.getSku().equals(sku))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Thể loại không tồn tại."));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy định dạng sách với SKU: " + sku));
     }
 }

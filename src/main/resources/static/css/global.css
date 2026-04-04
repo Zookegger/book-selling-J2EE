@@ -44,8 +44,13 @@ body {
     transform: scale(1) !important;
 }
 
-/* Clean up number input arrows */
-.selected-format-qty::-webkit-inner-spin-button,
-.selected-format-qty::-webkit-outer-spin-button {
-    opacity: 1;
+.hide-arrows {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.hide-arrows::-webkit-inner-spin-button,
+.hide-arrows::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }

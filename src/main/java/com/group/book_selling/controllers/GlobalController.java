@@ -16,6 +16,6 @@ public class GlobalController {
     @ModelAttribute("cartItemCount")
     public int getCartItemCount(HttpSession session) {
         Cart cart = CartSessionUtils.getOrCreate(session);
-        return cart.size();
+        return cart.getTotalQuantity();
     }
 }

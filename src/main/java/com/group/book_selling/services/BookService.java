@@ -40,16 +40,20 @@ public class BookService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return bookRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         }
-        
+
         String q = keyword.trim();
         List<Book> results = bookRepository.searchBooks(q);
 
         if (q.matches("\\d+")) {
-            Long id = Long.valueOf(q);
-            bookRepository.findById(id).ifPresent(b -> {
-                if (!results.contains(b))
-                    results.add(0, b);
-            });
+            try {
+                Long id = Long.valueOf(q);
+                bookRepository.findById(id).ifPresent(b -> {
+                    if (!results.contains(b))
+                        results.add(0, b);
+                });
+            } catch (NumberFormatException e) {
+                // Ignore oversized numeric input and return normal search results.
+            }
         }
 
         return results;
