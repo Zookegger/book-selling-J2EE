@@ -25,20 +25,26 @@ public class CartController {
     @GetMapping("/view")
     public String showCart(Model model, HttpSession session) {
         Cart cart = CartSessionUtils.getOrCreate(session);
+        var subtotal = cart.getTotalPrice("VND");
+        var tax = cart.getTotalTax("VND");
+        var total = cart.getGrandTotalPrice("VND");
+
         model.addAttribute("cart", cart);
-        model.addAttribute("physicalItems", cart.getPhysicalItems()); 
-        model.addAttribute("digitalItems", cart.getDigitalItems()); 
+        model.addAttribute("physicalItems", cart.getPhysicalItems());
+        model.addAttribute("digitalItems", cart.getDigitalItems());
+        model.addAttribute("subtotal", subtotal);
+        model.addAttribute("tax", tax);
+        model.addAttribute("total", total);
         return "cart/cart";
     }
 
     @PostMapping("/add")
     public String addToCart(
-        @RequestParam Long bookId,
-        @RequestParam String sku,
-        @RequestParam(defaultValue = "1") int qty,
-        HttpSession session,
-        RedirectAttributes redirectAttrs
-    ) {
+            @RequestParam Long bookId,
+            @RequestParam String sku,
+            @RequestParam(defaultValue = "1") int qty,
+            HttpSession session,
+            RedirectAttributes redirectAttrs) {
         Cart cart = CartSessionUtils.getOrCreate(session);
         try {
             cartService.addToCart(cart, bookId, sku, qty);
@@ -47,8 +53,39 @@ public class CartController {
         } catch (Exception e) {
             redirectAttrs.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/books/" + bookId;
+        return "redirect:/cart/view";
     }
 
-    
+
+    @PostMapping("/update")
+    public String updateCart(
+            @RequestParam Long bookId,
+            @RequestParam String sku,
+            @RequestParam int qty,
+            HttpSession session,
+            RedirectAttributes redirectAttrs) {
+        Cart cart = CartSessionUtils.getOrCreate(session);
+        try {
+            cartService.updateQty(cart, bookId, sku, qty);
+            CartSessionUtils.save(session, cart);
+        } catch (Exception e) {
+            redirectAttrs.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/cart/view";
+    }
+
+    @PostMapping("/remove")
+    public String removeFromCart(
+            @RequestParam String sku,
+            HttpSession session,
+            RedirectAttributes redirectAttrs) {
+        Cart cart = CartSessionUtils.getOrCreate(session);
+        try {
+            cartService.removeFromCart(cart, sku);
+            CartSessionUtils.save(session, cart);
+        } catch (Exception e) {
+            redirectAttrs.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/cart/view";
+    }
 }

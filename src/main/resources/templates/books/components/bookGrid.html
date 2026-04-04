@@ -1,89 +1,127 @@
-<!-- 
+<!--
     Book grid fragment
     Sử dụng như sau:
     <th:block th:replace="~{books/components/bookGrid :: bookGrid(books=${books}, isAdmin=${isAdmin})}"></th:block>
 
     Giải thích:
+
     - bookGrid() là tên fragment, có thể chứa các tham số để truyền dữ liệu vào.
         + books: danh sách sách cần hiển thị (bắt buộc)
         + isAdmin: cờ xác định người dùng có phải là admin không (tùy chọn, mặc định false). Nếu là admin sẽ hiển thị thêm thông tin ISBN và nút sửa.
   -->
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="bookGrid(books,isAdmin)">
     <div class="row row-cols-1 row-cols-md-3 row-cols-xl-4 g-4" th:if="${!books.isEmpty()}">
-        <div class="col" th:each="book : ${books}">
+        <div class="col" th:each="book : ${books}"
+            th:with="modalId=${'formatSelectionModal_' + book.id}, firstFormat=${!#lists.isEmpty(book.formats) ? book.formats[0] : null}">
 
-            <a th:href="@{/books/{slug}(slug=${book.slug})}" class="text-decoration-none">
-                <div class="card h-100 shadow-sm border-0">
+            <a th:href="@{/books/{slug}(slug=${book.slug})}" class="text-decoration-none book-grid-link">
+                <form class="card h-100 shadow-sm border-0 position-relative book-grid-card"
+                    id="book-form-[[${book.id}]]" method="post" th:action="@{/cart/add}">
+                    <input type="hidden" name="bookId" th:value="${book.id}" />
+                    <input type="hidden" th:if="${firstFormat != null}" name="sku" th:value="${firstFormat.sku}" />
+                    <input type="hidden" th:if="${firstFormat != null}" name="qty" th:value="1" />
 
-                    <!-- Cover image -->
-                    <div class="bg-light d-flex align-items-center justify-content-center"
-                        style="height: 200px; overflow: hidden;">
+                    <div class="bg-light d-flex align-items-center justify-content-center position-relative"
+                        style="height: 220px; overflow: hidden; border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;">
                         <img th:if="${book.coverImage != null and !book.coverImage.isBlank()}"
                             th:src="${book.coverImage}" class="img-fluid h-100 w-100 object-fit-cover"
                             alt="Ảnh bìa sách" />
-                        <span th:if="${book.coverImage == null or book.coverImage.isBlank()}"
-                            class="text-muted small">Không có ảnh bìa</span>
-                    </div>
-
-                    <div class="card-body d-flex flex-column">
-
-                        <!-- Title & subtitle -->
-                        <h5 class="card-title mb-1" th:text="${book.title}"></h5>
-                        <p class="text-muted small mb-2" th:text="${book.subtitle}"></p>
-
-                        <!-- Admin only: ISBN -->
-                        <p th:if="${isAdmin}" class="mb-2 small">
-                            <strong>ISBN:</strong> <span th:text="${book.isbn}"></span>
-                        </p>
-
-                        <div class="mb-3 d-flex flex-wrap gap-1 align-items-center">
-                            <!-- Format badges -->
+                        <div class="position-absolute top-0 end-0 p-2 d-flex flex-column gap-2 align-items-end z-2">
                             <th:block th:each="f : ${book.formats}">
-                                <span th:switch="${f.formatType.name()}">
-                                    <span th:case="'PHYSICAL'" class="badge text-bg-success shadow-sm">Bản in</span>
-                                    <span th:case="'DIGITAL'" class="badge text-bg-info shadow-sm">Ebook</span>
-                                    <span th:case="'AUDIOBOOK'" class="badge text-bg-warning shadow-sm">Audiobook</span>
-                                    <span th:case="*" class="badge text-bg-dark shadow-sm">Khác</span>
+                                <span th:switch="${f.formatType.name()}" class="format-badge">
+                                    <span th:case="'PHYSICAL'"
+                                        class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 shadow-sm"><i
+                                            class="fa fa-book me-1"></i></span>
+                                    <span th:case="'DIGITAL'"
+                                        class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 shadow-sm"><i
+                                            class="fa fa-tablet-screen-button me-1"></i></span>
+                                    <span th:case="'AUDIOBOOK'"
+                                        class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 shadow-sm"><i
+                                            class="fa fa-headphones me-1"></i></span>
+                                    <span th:case="*"
+                                        class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 shadow-sm">Khác</span>
                                 </span>
                             </th:block>
 
-                            <!-- Category badges -->
+
+                            <span th:if="${book.coverImage == null or book.coverImage.isBlank()}"
+                                class="text-muted small fw-medium">
+                                <i class="fa fa-image fs-4 mb-2 d-block text-center opacity-50"></i> Không có ảnh bìa
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="card-body d-flex flex-column pt-4">
+
+                        <h5 class="card-title fw-bold text-dark mb-1" th:text="${book.title}"></h5>
+                        <p class="text-muted small mb-3" th:text="${book.subtitle}"></p>
+
+                        <p th:if="${isAdmin}" class="mb-3 small bg-light p-2 rounded border border-dashed">
+                            <i class="fa fa-barcode me-1 text-secondary"></i> <strong>ISBN:</strong> <span
+                                class="font-monospace" th:text="${book.isbn}"></span>
+                        </p>
+
+                        <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
                             <span th:if="${!#lists.isEmpty(book.categories)}" th:each="category : ${book.categories}"
-                                class="badge rounded-pill border text-secondary fw-normal bg-transparent"
+                                class="badge rounded-pill border text-secondary fw-medium bg-light"
                                 th:text="${category.name}">
                             </span>
                         </div>
 
-                        <!-- Description -->
-                        <p class="text-truncate text-muted small mb-3" th:text="${book.description}"></p>
+                        <p class="text-truncate text-muted small mb-4 lh-base" th:text="${book.description}"></p>
 
-                        <!-- Footer: price + actions -->
                         <div class="mt-auto">
 
-                            <!-- Price (customer view) -->
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <span class="text-muted small">Giá bán</span>
-                                <span class="fw-bold fs-5 text-primary">
-                                    <span th:if="${!#lists.isEmpty(book.formats)}"
-                                        th:insert="~{books/components/price :: price(price=${book.formats[0].discountedPrice != null ? book.formats[0].discountedPrice : book.formats[0].price}, quantity=1, currency='VND')}"></span>
-                                    <span th:if="${#lists.isEmpty(book.formats)}">Chưa có giá</span>
+                            <div class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded-3">
+                                <span class="text-muted small fw-semibold text-uppercase tracking-wide">Giá
+                                    bán</span>
+                                <span class="fw-black fs-5 text-primary">
+                                    <span th:if="${firstFormat != null}"
+                                        th:insert="~{books/components/price :: price(price=${firstFormat.discountedPrice != null ? firstFormat.discountedPrice : firstFormat.price}, quantity=1, currency='VND')}"></span>
+                                    <span th:if="${firstFormat == null}" class="fs-6 text-muted">Chưa có giá</span>
                                 </span>
                             </div>
 
-                            <!-- Action buttons -->
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 position-relative z-2">
 
-                                <!-- Admin: edit -->
                                 <a th:if="${isAdmin}" th:href="@{/books/{slug}/edit(slug=${book.slug})}"
-                                    class="btn btn-sm btn-secondary flex-fill">Sửa</a>
-                                <!-- Customer: buy -->
-                                <button type="button" class="btn btn-sm btn-primary flex-fill">Mua</button>
+                                    class="btn btn-light border-2 fw-bold flex-fill"><i class="fa fa-pen me-1"></i>
+                                    Sửa</a>
+
+                                <button type="button"
+                                    class="btn btn-primary fw-bold shadow-sm flex-fill d-flex align-items-center justify-content-center gap-2"
+                                    th:disabled="${#lists.isEmpty(book.formats)}" data-bs-toggle="modal"
+                                    th:attr="data-bs-target=${'#' + modalId}"
+                                    onclick="event.preventDefault(); event.stopPropagation();">
+                                    <i class="fa fa-cart-plus"></i> Mua ngay
+                                </button>
                             </div>
+
+                            <p th:if="${#lists.isEmpty(book.formats)}"
+                                class="text-danger small fw-medium mt-3 mb-0 text-center">
+                                <i class="fa fa-circle-xmark me-1"></i> Sách này chưa có phiên bản để mua.
+                            </p>
 
                         </div>
                     </div>
-                </div>
+                </form>
             </a>
+
+            <th:block
+                th:replace="~{books/components/formatSelection :: formatSelection(book=${book}, formats=${book.formats}, modalId=${modalId})}">
+            </th:block>
+
         </div>
     </div>
+
+    <style>
+        .book-grid-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .book-grid-link:hover .book-grid-card {
+            transform: translateY(-4px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+        }
+    </style>
 </th:block>

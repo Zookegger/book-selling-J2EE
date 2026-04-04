@@ -15,25 +15,9 @@
                 <p class="text-muted">Top <span th:text="${entry.value.size()}"></span> cuốn mới nhất</p>
             </div>
 
-            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
-                <div class="col" th:each="book : ${entry.value}">
-                    <div class="card h-100 shadow-sm border-0">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title" th:text="${book.title}"></h5>
-                            <p class="text-muted mb-2" th:text="${book.subtitle}"></p>
-                            <div class="mb-2">
-                                <span class="badge bg-secondary me-1 mb-1" th:each="cat : ${book.categories}"
-                                    th:text="${cat.name}"></span>
-                            </div>
-                            <p class="text-truncate" th:text="${book.description}"></p>
-                            <div class="mt-auto d-flex gap-2">
-                                <a th:href="@{/books/{slug}(slug=${book.slug})}"
-                                    class="btn btn-outline-primary flex-fill">Chi tiết</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <th:block th:replace="~{books/components/bookGrid :: bookGrid(books=${entry.value}, isAdmin=${false})}">
+            </th:block>
+
         </div>
     </div>
 </th:block>

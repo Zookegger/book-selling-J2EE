@@ -40,7 +40,19 @@ public class BookService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return bookRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         }
-        return bookRepository.searchBooks(keyword.trim());
+        
+        String q = keyword.trim();
+        List<Book> results = bookRepository.searchBooks(q);
+
+        if (q.matches("\\d+")) {
+            Long id = Long.valueOf(q);
+            bookRepository.findById(id).ifPresent(b -> {
+                if (!results.contains(b))
+                    results.add(0, b);
+            });
+        }
+
+        return results;
     }
 
     @Transactional(readOnly = true)

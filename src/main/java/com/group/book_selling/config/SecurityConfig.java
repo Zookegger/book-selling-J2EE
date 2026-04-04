@@ -60,6 +60,7 @@ public class SecurityConfig {
                                 "/books/search",
                                 "/books/autocomplete",
                                 "/books/*",
+                                "/cart/**",
                                 "/categories")
                         .permitAll()
                         .requestMatchers("/user/**")
