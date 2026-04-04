@@ -18,6 +18,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -25,6 +26,7 @@ import lombok.Setter;
 @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "coupon_usages", indexes = {
         @Index(name = "idx_coupon_usages_coupon_id", columnList = "coupon_id"),
         @Index(name = "idx_coupon_usages_user_id", columnList = "user_id")

@@ -31,14 +31,12 @@ public class PublisherService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay nha xuat ban"));
     }
 
-    @Transactional
     public Publisher create(Publisher request) {
         request.setId(null);
         request.setSlug(SlugUtils.slugify(request.getName()));
         return publisherRepository.save(request);
     }
 
-    @Transactional
     public Publisher update(Long id, Publisher request) {
         Publisher existing = findById(id);
 
@@ -54,7 +52,6 @@ public class PublisherService {
         return publisherRepository.save(existing);
     }
 
-    @Transactional
     public void delete(Long id) {
         if (!publisherRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay nha xuat ban");
