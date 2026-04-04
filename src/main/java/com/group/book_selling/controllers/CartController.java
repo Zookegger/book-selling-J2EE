@@ -1,11 +1,15 @@
 package com.group.book_selling.controllers;
 
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.group.book_selling.models.Cart;
@@ -56,22 +60,36 @@ public class CartController {
         return "redirect:/cart/view";
     }
 
-
     @PostMapping("/update")
-    public String updateCart(
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateCart(
             @RequestParam Long bookId,
             @RequestParam String sku,
             @RequestParam int qty,
-            HttpSession session,
-            RedirectAttributes redirectAttrs) {
+            HttpSession session) {
         Cart cart = CartSessionUtils.getOrCreate(session);
         try {
             cartService.updateQty(cart, bookId, sku, qty);
             CartSessionUtils.save(session, cart);
+
+            var subtotal = cart.getTotalPrice("VND");
+            var tax = cart.getTotalTax("VND");
+            var total = cart.getGrandTotalPrice("VND");
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "qty", qty,
+                    "subtotal", subtotal,
+                    "tax", tax,
+                    "total", total));
+
         } catch (Exception e) {
-            redirectAttrs.addFlashAttribute("error", e.getMessage());
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", e.getMessage()));
         }
-        return "redirect:/cart/view";
     }
 
     @PostMapping("/remove")
