@@ -21,7 +21,7 @@ import com.group.book_selling.services.CategoryService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Controller SSR cho quan tri danh muc sach.
+ * Controller cho danh mục sách.
  */
 @Controller
 @RequestMapping("/categories")
@@ -31,7 +31,7 @@ public class CategoryController {
     private final CategoryService categoryService;
     private final BookService bookService;
 
-    /** Trang danh sach. */
+    /** Trang danh sách. */
     @GetMapping
     public String list(Model model) {
         List<Category> allCategories = categoryService.findAll();
@@ -40,6 +40,7 @@ public class CategoryController {
         return "categories/list";
     }
 
+    /** Trang chi tiết danh mục và sách thuộc danh mục. */
     @GetMapping("/{slug}")
     public String categoryBooks(
             @PathVariable String slug,
@@ -59,7 +60,7 @@ public class CategoryController {
         return "categories/list";
     }
 
-    /** Trang tao moi. */
+    /** Trang tạo mới. */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/new")
     public String showCreateForm(Model model) {
@@ -69,7 +70,7 @@ public class CategoryController {
         return "categories/form";
     }
 
-    /** Trang chinh sua. */
+    /** Trang chỉnh sửa. */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
@@ -82,7 +83,7 @@ public class CategoryController {
         return "categories/form";
     }
 
-    /** Luu du lieu. */
+    /** Lưu dữ liệu. */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/save")
     public String save(@ModelAttribute Category category, RedirectAttributes ra) {
@@ -91,10 +92,10 @@ public class CategoryController {
         return "redirect:/categories";
     }
 
-    /** Xoa danh muc. */
+    /** Xóa danh mục. */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/delete/{id}")
-    public String deleteAdmin(@PathVariable Long id, RedirectAttributes ra) {
+    public String delete(@PathVariable Long id, RedirectAttributes ra) {
         categoryService.delete(id);
         ra.addFlashAttribute("successMessage", "Đã xóa danh mục.");
         return "redirect:/categories";
