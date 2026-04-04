@@ -1,81 +1,124 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <title>Thể loại - LuminaBook</title>
     <th:block th:replace="~{layout :: link-css}"></th:block>
+    <style>
+        /* A little CSS magic so your users know they can actually interact with this */
+        .category-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border-radius: 0.75rem;
+        }
+
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Elevate interactive elements above the stretched link */
+        .admin-actions {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
 </head>
-<body>
+
+<body class="bg-light">
     <th:block th:replace="~{layout::header}"></th:block>
 
     <main class="container-xl py-5">
-
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
             <div>
-                <h1 class="h3 fw-bold mb-1">Thể loại sách</h1>
+                <h1 class="h2 fw-bold text-dark mb-2"
+                    th:text="${category != null ? 'Sách thuộc thể loại: ' + category.name : 'Thể loại sách'}">Thể loại sách</h1>
                 <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb small mb-0">
-                        <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Thể loại</li>
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/categories}" class="text-decoration-none">Thể loại</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-medium" aria-current="page"
+                            th:text="${category != null ? category.name : 'Danh sách'}">Danh sách</li>
                     </ol>
                 </nav>
             </div>
-            <a th:href="@{/categories/new}" class="btn btn-primary btn-sm"
-               sec:authorize="hasRole('ADMIN')">
-                <i class="fa fa-plus me-1"></i> Thêm thể loại
+            <a th:if="${category != null}" th:href="@{/categories}" class="btn btn-outline-secondary shadow-sm">
+                <i class="fa fa-arrow-left me-2"></i> Quay lại danh sách thể loại
+            </a>
+            <a th:if="${category == null}" th:href="@{/categories/new}" class="btn btn-primary shadow-sm"
+                sec:authorize="hasRole('ADMIN')">
+                <i class="fa fa-plus me-2"></i> Thêm thể loại mới
             </a>
         </div>
 
-        <!-- Success Alert -->
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm border-0"
+            role="alert">
             <i class="fa fa-check-circle me-2"></i>
-            <span th:text="${successMessage}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <span th:text="${successMessage}" class="fw-medium"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
-        <!-- Empty State -->
-        <div th:if="${categories.isEmpty()}" class="text-center py-5 text-muted">
-            <i class="fa fa-book fa-2x mb-3 d-block opacity-25"></i>
-            <p class="mb-0">Chưa có thể loại nào.</p>
+        <div th:if="${category == null and categories.isEmpty()}" class="text-center py-5 bg-white rounded shadow-sm border">
+            <i class="fa fa-folder-open fa-3x text-muted mb-3 opacity-50"></i>
+            <h4 class="text-secondary fw-bold">Chưa có thể loại nào</h4>
+            <p class="text-muted mb-4">Hệ thống của bạn đang trống. Hãy bắt đầu bằng cách thêm một thể loại mới.</p>
+            <a th:href="@{/categories/new}" class="btn btn-outline-primary" sec:authorize="hasRole('ADMIN')">
+                Tạo ngay
+            </a>
         </div>
 
-        <!-- Genre Grid -->
-        <div class="row g-3" th:unless="${categories.isEmpty()}">
-            <div class="col-sm-6 col-lg-4" th:each="cat : ${categories}">
-                <div class="card h-100 border">
+        <div class="row g-4" th:if="${category == null and !categories.isEmpty()}">
+            <div class="col-md-6 col-lg-4 col-xl-3" th:each="cat : ${categories}">
+                <div class="card h-100 border-0 shadow-sm category-card position-relative bg-white">
 
-                    <div class="card-body">
-                        <!-- Parent badge -->
-                        <span th:if="${cat.parent != null}"
-                              class="badge text-bg-light border fw-normal small mb-2 d-inline-block">
+                    <div class="card-body p-4">
+                        <div class="mb-2 text-muted small fw-medium" th:if="${not #lists.isEmpty(cat.ancestors)}">
+                            <span th:each="anc, iterStat : ${cat.ancestors}">
+                                <span th:text="${anc.name}"></span>
+                                <i class="fa fa-angle-right mx-1" th:if="${!iterStat.last}"></i>
+                            </span>
+                            <i class="fa fa-angle-right mx-1"></i>
+                        </div>
+                        <div class="mb-2 text-muted small fw-medium"
+                            th:if="${#lists.isEmpty(cat.ancestors) and cat.parent != null}">
                             <i class="fa fa-level-up-alt fa-rotate-90 me-1"></i>
                             <span th:text="${cat.parent.name}"></span>
-                        </span>
+                        </div>
 
-                        <!-- Name & slug -->
-                        <h5 class="card-title mb-0 fw-semibold" th:text="${cat.name}">Tiểu thuyết</h5>
-                        <code class="small text-muted" th:text="${cat.slug}">tieu-thuyet</code>
+                        <h4 class="card-title fw-bold text-dark mb-1">
+                            <a th:href="@{/categories/{slug}(slug=${cat.slug})}"
+                                class="text-decoration-none text-dark stretched-link" th:text="${cat.name}">
+                                Tiểu thuyết
+                            </a>
+                        </h4>
 
-                        <!-- Description -->
-                        <p class="card-text text-muted small mt-2 mb-0"
-                           th:text="${cat.description}"
-                           style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;"></p>
+                        <p class="card-text text-secondary small line-clamp-2 mb-0"
+                            th:text="${cat.description.isEmpty() ? 'Chưa có mô tả cho thể loại này.' : cat.description}">
+                        </p>
                     </div>
 
-                    <!-- Admin footer -->
-                    <div class="card-footer bg-transparent d-flex justify-content-between align-items-center py-2"
-                         sec:authorize="hasRole('ADMIN')">
-                        <small class="text-muted"
-                               th:text="${#temporals.format(cat.updatedAt, 'dd/MM/yyyy')}"></small>
-                        <div class="btn-group btn-group-sm">
-                            <a th:href="@{/categories/edit/{id}(id=${cat.id})}"
-                               class="btn btn-outline-secondary">
-                                <i class="fa fa-pencil"></i>
+                    <div class="card-footer bg-transparent border-top-0 px-4 pb-4 pt-0 d-flex justify-content-between align-items-center"
+                        sec:authorize="hasRole('ADMIN')">
+                        <small class="text-muted fw-medium"
+                            th:text="${#temporals.format(cat.updatedAt, 'dd/MM/yyyy')}"></small>
+
+                        <div class="btn-group btn-group-sm admin-actions shadow-sm">
+                            <a th:href="@{/categories/edit/{id}(id=${cat.id})}" class="btn btn-light border"
+                                title="Chỉnh sửa">
+                                <i class="fa fa-pen text-primary"></i>
                             </a>
                             <form th:action="@{/categories/delete/{id}(id=${cat.id})}" method="post"
-                                  th:onsubmit="return confirm('Xóa thể loại [[${cat.name}]]?');">
-                                <button type="submit" class="btn btn-outline-danger">
+                                th:onsubmit="return confirm('Bạn có chắc chắn muốn xóa thể loại [' + [[${cat.name}]] + ']? Hành động này không thể hoàn tác.');"
+                                class="d-inline">
+                                <button type="submit" class="btn btn-light border text-danger" title="Xóa">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </form>
@@ -86,8 +129,24 @@
             </div>
         </div>
 
+        <div th:if="${category != null}">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <p class="text-muted mb-0" th:text="${#lists.size(books)} + ' sách'">0 sách</p>
+            </div>
+
+            <div th:if="${books == null or books.isEmpty()}" class="text-center py-5 bg-white rounded shadow-sm border">
+                <i class="fa fa-book-open fa-3x text-muted mb-3 opacity-50"></i>
+                <h4 class="text-secondary fw-bold">Chưa có sách trong thể loại này</h4>
+                <p class="text-muted mb-0">Bạn có thể thử chọn một thể loại khác.</p>
+            </div>
+
+            <th:block th:if="${books != null and !books.isEmpty()}"
+                th:replace="~{books/components/bookGrid :: bookGrid(books=${books}, isAdmin=${#authorization.expression('hasRole(''ADMIN'')')})}">
+            </th:block>
+        </div>
     </main>
 
     <th:block th:replace="~{layout::footer}"></th:block>
 </body>
+
 </html>

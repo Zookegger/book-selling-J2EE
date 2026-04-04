@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.group.book_selling.models.Category;
+import com.group.book_selling.services.BookService;
 import com.group.book_selling.services.CategoryService;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,10 +33,12 @@ class CategoryControllerTest {
 
     @Mock
     private CategoryService categoryService;
+    @Mock
+    private BookService bookService;
 
     @BeforeEach
     void setUp() {
-        CategoryController controller = new CategoryController(categoryService);
+        CategoryController controller = new CategoryController(categoryService, bookService);
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
@@ -47,7 +50,7 @@ class CategoryControllerTest {
                 .slug("van-hoc")
                 .build();
 
-        when(categoryService.findAllForAdminList()).thenReturn(List.of(category));
+        when(categoryService.findAll()).thenReturn(List.of(category));
 
         mockMvc.perform(get("/categories"))
                 .andExpect(status().isOk())

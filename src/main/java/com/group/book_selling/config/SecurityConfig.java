@@ -61,7 +61,8 @@ public class SecurityConfig {
                                 "/books/autocomplete",
                                 "/books/*",
                                 "/cart/**",
-                                "/categories")
+                                "/categories",
+                                "/categories/**")
                         .permitAll()
                         .requestMatchers("/user/**")
                         .hasAnyRole(UserRole.ADMIN.name(), UserRole.USER.name())

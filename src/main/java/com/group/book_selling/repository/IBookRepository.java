@@ -29,9 +29,19 @@ public interface IBookRepository extends JpaRepository<Book, Long> {
     """)
     List<Book> searchBooks(@Param("keyword") String keyword);
 
-    // Tìm sách theo danh sách ID thể loại
-    @Query("SELECT DISTINCT b FROM Book b JOIN b.categories c WHERE c.id IN :categoryIds")
-    List<Book> findDistinctByCategories_IdIn(@Param("categoryIds") List<Long> categoryIds);
+    // Tìm sách theo danh sách ID
+    List<Book> findByIdIn(List<Long> ids);
+
+    // Tìm sách theo keyword và categorySlug (nếu có)
+    @Query("SELECT DISTINCT b FROM Book b JOIN b.categories c WHERE " +
+           "(LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(b.isbn) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND c.slug = :categorySlug " +
+           "ORDER BY b.id DESC")
+    List<Book> searchBooksByCategorySlug(@Param("keyword") String keyword, @Param("categorySlug") String categorySlug);
+
+        @Query("SELECT DISTINCT b FROM Book b JOIN b.categories c WHERE c.slug = :categorySlug ORDER BY b.id DESC")
+        List<Book> findByCategorySlug(@Param("categorySlug") String categorySlug);
 
     // Số lượng sách theo thể loại
     long countByCategories_Id(Long categoryId);
