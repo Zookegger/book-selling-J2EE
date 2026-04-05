@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+    <title>Chi tiết đơn hàng</title>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-xl my-4 py-4 flex-grow-1" th:if="${order != null}">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">Chi tiết đơn hàng</h1>
+                <p class="text-muted mb-0">
+                    Mã đơn: <strong th:text="${order.orderNumber}"></strong>
+                </p>
+            </div>
+            <a th:href="@{/orders}" class="btn btn-outline-secondary">Quay lại danh sách</a>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="text-muted small">Ngày đặt</div>
+                        <div th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-muted small">Trạng thái đơn</div>
+                        <span class="badge bg-success" th:text="${order.orderStatus}"></span>
+                    </div>
+                    <div class="col-md-3" th:if="${order.payment != null}">
+                        <div class="text-muted small">Thanh toán</div>
+                        <span class="badge bg-primary" th:text="${order.payment.paymentStatus}"></span>
+                    </div>
+                    <div class="col-md-3" th:if="${order.payment != null}">
+                        <div class="text-muted small">Phương thức</div>
+                        <span class="badge bg-secondary" th:text="${order.payment.paymentMethod}"></span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="text-muted small">Người nhận</div>
+                        <div th:text="${order.recipientName}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small">Email</div>
+                        <div th:text="${order.customerEmail}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small">Số điện thoại</div>
+                        <div th:text="${order.customerPhone}"></div>
+                    </div>
+                    <div class="col-12">
+                        <div class="text-muted small">Địa chỉ giao hàng</div>
+                        <div class="address-display"
+                            th:text="${order.shippingStreetDetails + ', ' + order.shippingWard + ', ' + order.shippingDistrict + ', ' + order.shippingProvinceOrCity}"
+                            th:attr="data-street=${order.shippingStreetDetails},
+                                     data-ward-code=${order.shippingWard},
+                                     data-district-code=${order.shippingDistrict},
+                                     data-province-code=${order.shippingProvinceOrCity}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Sản phẩm</h2>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Định dạng</th>
+                                <th>Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${order.items}">
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img th:if="${item.coverImage != null and !item.coverImage.isBlank()}"
+                                            th:src="${item.coverImage}" alt=""
+                                            style="width:56px;height:56px;object-fit:cover;" class="rounded">
+                                        <div>
+                                            <div class="fw-semibold" th:text="${item.title}"></div>
+                                            <div class="text-muted small" th:text="${item.sku}"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${item.formatType}"></td>
+                                <td th:text="${item.quantity}"></td>
+                                <td class="text-end"
+                                    th:insert="~{books/components/price :: price(price=${item.unitPrice}, quantity=1, currency=${item.currency})}">
+                                </td>
+                                <td class="text-end"
+                                    th:insert="~{books/components/price :: price(price=${item.subTotal}, quantity=1, currency=${item.currency})}">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ms-auto" style="max-width:360px;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tạm tính</span>
+                        <span
+                            th:insert="~{books/components/price :: price(price=${order.subtotal}, quantity=1, currency=${order.currency})}"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">VAT</span>
+                        <span
+                            th:insert="~{books/components/price :: price(price=${order.tax}, quantity=1, currency=${order.currency})}"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Giảm giá</span>
+                        <span
+                            th:insert="~{books/components/price :: price(price=${order.discount}, quantity=1, currency=${order.currency})}"></span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Tổng cộng</span>
+                        <span
+                            th:insert="~{books/components/price :: price(price=${order.grandTotal}, quantity=1, currency=${order.currency})}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', async function () {
+
+            const addressLines = document.querySelectorAll('.address-display');
+            for (const el of addressLines) {
+                await window.locationUtils.resolveAddressDisplayLine(el);
+            }
+        });
+    </script>
+</body>
+
+</html>

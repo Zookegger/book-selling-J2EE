@@ -62,7 +62,7 @@
             <li class="nav-item">
                 <button class="nav-link" th:classappend="${activeTab == 'security'} ? ' active'" data-bs-toggle="tab"
                     data-bs-target="#security" type="button">
-                     Bảo mật
+                    Bảo mật
                 </button>
             </li>
         </ul>
@@ -120,7 +120,10 @@
                                     <i class="bi bi-telephone"></i>
                                     <span th:text="${address.phoneNumber}"></span>
                                 </p>
-                                <p class="mb-0 small text-muted"
+                                <p class="mb-0 small text-muted address-display" th:attr="data-street=${address.streetDetails},
+                                             data-ward-code=${address.ward},
+                                             data-district-code=${address.district},
+                                             data-province-code=${address.provinceOrCity}"
                                     th:text="${address.streetDetails + ', ' + address.ward + ', ' + address.district + ', ' + address.provinceOrCity}">
                                 </p>
                             </div>
@@ -129,8 +132,7 @@
                                 <div class="d-flex gap-2 justify-content-end mb-2">
                                     <button type="button" class="btn btn-sm btn-light border rounded-circle"
                                         style="width:35px;height:35px;" onclick="editAddress(this)"
-                                        data-bs-toggle="modal" data-bs-target="#editAddressModal" title="Sửa"
-                                        th:attr="data-index=${iterStat.index},
+                                        data-bs-toggle="modal" data-bs-target="#editAddressModal" title="Sửa" th:attr="data-index=${iterStat.index},
                                                  data-recipient-name=${address.recipientName},
                                                  data-phone-number=${address.phoneNumber},
                                                  data-province=${address.provinceOrCity},
@@ -192,8 +194,8 @@
                             <div class="mb-3">
                                 <label for="newPassword" class="form-label">Mật khẩu mới</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="newPassword" th:field="*{newPassword}"
-                                        onkeyup="validatePassword()">
+                                    <input type="password" class="form-control" id="newPassword"
+                                        th:field="*{newPassword}" onkeyup="validatePassword()">
                                     <button type="button" class="btn btn-outline-secondary"
                                         onclick="togglePasswordVisibility('newPassword', this)">
                                         <i class="bi bi-eye"></i>
@@ -257,7 +259,6 @@
     <th:block th:replace="~{layout::footer}"></th:block>
 
     <script th:inline="javascript">
-        const API = "https://provinces.open-api.vn/api";
         const initialOpenModal = /*[[${openModal}]]*/ null;
 
         function togglePasswordVisibility(fieldId, button) {
@@ -344,97 +345,26 @@
             form.submit();
         }
 
-        async function loadProvinces(selectId, selectedValue = null) {
-            const select = document.getElementById(selectId);
-            if (!select) {
-                return;
-            }
-
-            const res = await fetch(`${API}/p/`);
-            const data = await res.json();
-
-            select.innerHTML = '<option value="">-- Chọn tỉnh/thành phố --</option>';
-            data.forEach(province => {
-                const option = document.createElement('option');
-                option.value = String(province.code);
-                option.textContent = province.name;
-                if (selectedValue !== null && String(selectedValue) === String(province.code)) {
-                    option.selected = true;
-                }
-                select.appendChild(option);
-            });
-        }
-
-        async function loadDistrict(selectId, provinceCode, selectedDistrict = null) {
-            const districtSelect = document.getElementById(selectId);
-            if (!districtSelect) {
-                return;
-            }
-
-            districtSelect.innerHTML = '<option value="">-- Chọn quận/huyện --</option>';
-            if (!provinceCode) {
-                return;
-            }
-
-            const res = await fetch(`${API}/p/${provinceCode}?depth=2`);
-            const data = await res.json();
-
-            data.districts.forEach(district => {
-                const option = document.createElement('option');
-                option.value = String(district.code);
-                option.textContent = district.name;
-                if (selectedDistrict !== null && String(selectedDistrict) === String(district.code)) {
-                    option.selected = true;
-                }
-                districtSelect.appendChild(option);
-            });
-        }
-
-        async function loadWard(selectId, districtCode, selectedWard = null) {
-            const wardSelect = document.getElementById(selectId);
-            if (!wardSelect) {
-                return;
-            }
-
-            wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
-            if (!districtCode) {
-                return;
-            }
-
-            const res = await fetch(`${API}/d/${districtCode}?depth=2`);
-            const data = await res.json();
-
-            data.wards.forEach(ward => {
-                const option = document.createElement('option');
-                option.value = String(ward.code);
-                option.textContent = ward.name;
-                if (selectedWard !== null && String(selectedWard) === String(ward.code)) {
-                    option.selected = true;
-                }
-                wardSelect.appendChild(option);
-            });
-        }
-
         async function loadDistrictAdd(selectedDistrict = null, selectedWard = null) {
             const provinceCode = document.getElementById('newProvinceOrCity')?.value;
-            await loadDistrict('newDistrict', provinceCode, selectedDistrict);
-            await loadWard('newWard', document.getElementById('newDistrict')?.value, selectedWard);
+            await window.locationUtils.loadDistricts('newDistrict', provinceCode, selectedDistrict);
+            await window.locationUtils.loadWards('newWard', document.getElementById('newDistrict')?.value, selectedWard);
         }
 
         async function loadWardAdd(selectedWard = null) {
             const districtCode = document.getElementById('newDistrict')?.value;
-            await loadWard('newWard', districtCode, selectedWard);
+            await window.locationUtils.loadWards('newWard', districtCode, selectedWard);
         }
 
         async function loadDistrictEdit(selectedDistrict = null, selectedWard = null) {
             const provinceCode = document.getElementById('editProvinceOrCity')?.value;
-            await loadDistrict('editDistrict', provinceCode, selectedDistrict);
-            await loadWard('editWard', document.getElementById('editDistrict')?.value, selectedWard);
+            await window.locationUtils.loadDistricts('editDistrict', provinceCode, selectedDistrict);
+            await window.locationUtils.loadWards('editWard', document.getElementById('editDistrict')?.value, selectedWard);
         }
 
         async function loadWardEdit(selectedWard = null) {
             const districtCode = document.getElementById('editDistrict')?.value;
-            await loadWard('editWard', districtCode, selectedWard);
+            await window.locationUtils.loadWards('editWard', districtCode, selectedWard);
         }
 
         async function editAddress(trigger) {
@@ -453,9 +383,9 @@
             document.getElementById('editStreetDetails').value = street;
             document.getElementById('editIsDefault').checked = isDefault;
 
-            await loadProvinces('editProvinceOrCity', province);
-            await loadDistrict('editDistrict', province, district);
-            await loadWard('editWard', district, ward);
+            await window.locationUtils.loadProvinces('editProvinceOrCity', province);
+            await window.locationUtils.loadDistricts('editDistrict', province, district);
+            await window.locationUtils.loadWards('editWard', district, ward);
         }
 
         document.addEventListener('DOMContentLoaded', async function () {
@@ -466,11 +396,11 @@
             const addWard = document.getElementById('newWard');
 
             if (addProvince) {
-                await loadProvinces('newProvinceOrCity', addProvince.value || null);
+                await window.locationUtils.loadProvinces('newProvinceOrCity', addProvince.value || null);
                 if (addProvince.value) {
-                    await loadDistrict('newDistrict', addProvince.value, addDistrict?.value || null);
+                    await window.locationUtils.loadDistricts('newDistrict', addProvince.value, addDistrict?.value || null);
                     if (addDistrict?.value) {
-                        await loadWard('newWard', addDistrict.value, addWard?.value || null);
+                        await window.locationUtils.loadWards('newWard', addDistrict.value, addWard?.value || null);
                     }
                 }
             }
@@ -480,13 +410,13 @@
             const editWard = document.getElementById('editWard');
 
             if (editProvince && editProvince.value) {
-                await loadProvinces('editProvinceOrCity', editProvince.value);
-                await loadDistrict('editDistrict', editProvince.value, editDistrict?.value || null);
+                await window.locationUtils.loadProvinces('editProvinceOrCity', editProvince.value);
+                await window.locationUtils.loadDistricts('editDistrict', editProvince.value, editDistrict?.value || null);
                 if (editDistrict?.value) {
-                    await loadWard('editWard', editDistrict.value, editWard?.value || null);
+                    await window.locationUtils.loadWards('editWard', editDistrict.value, editWard?.value || null);
                 }
             } else if (editProvince) {
-                await loadProvinces('editProvinceOrCity');
+                await window.locationUtils.loadProvinces('editProvinceOrCity');
             }
 
             if (initialOpenModal) {
@@ -495,6 +425,9 @@
                     new bootstrap.Modal(modalElement).show();
                 }
             }
+
+            const addressLines = document.querySelectorAll('.address-display[data-province-code]');
+            await Promise.all(Array.from(addressLines).map(window.locationUtils.resolveAddressDisplayLine));
         });
     </script>
 </body>

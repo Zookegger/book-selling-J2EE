@@ -61,7 +61,7 @@ public class CartController {
         try {
             cartService.addToCart(cart, bookId, sku, qty);
             CartSessionUtils.save(session, cart);
-            redirectAttrs.addFlashAttribute("success", "Added to cart successfully!");
+            redirectAttrs.addFlashAttribute("success", "Thêm vào giỏ hàng thành công.");
         } catch (Exception e) {
             redirectAttrs.addFlashAttribute("error", e.getMessage());
         }
