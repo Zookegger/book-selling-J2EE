@@ -169,12 +169,18 @@
 			}
 
 			try {
+				const csrfToken = form.find('input[name="_csrf"]').val();
+				const headers = {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				};
+
+				if (csrfToken) {
+					headers['X-CSRF-TOKEN'] = csrfToken;
+				}
+
 				const response = await fetch('/coupons/apply-coupon', {
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-						'X-CSRF-TOKEN': $('input[name="_csrf"]').val()
-					},
+					headers: headers,
 					body: new URLSearchParams({ code: code })
 				});
 
