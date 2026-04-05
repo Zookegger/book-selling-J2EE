@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.group.book_selling.models.Publisher;
+import com.group.book_selling.services.BookService;
 import com.group.book_selling.services.PublisherService;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,32 +26,37 @@ class PublisherControllerTest {
 
     private MockMvc mockMvc;
 
-        @Mock
-        private PublisherService publisherService;
+    @Mock
+    private PublisherService publisherService;
 
-        @BeforeEach
-        void setUp() {
-                PublisherController controller = new PublisherController(publisherService);
-                this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-        }
+  
+    @Mock
+    private BookService bookService;
+
+    @BeforeEach
+    void setUp() {
+
+        PublisherController controller = new PublisherController(publisherService, bookService);
+        this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
 
     @Test
     void update_existingPublisher_returns200() throws Exception {
-                when(publisherService.update(eq(3L), any(Publisher.class))).thenAnswer(invocation -> {
-                        Publisher request = invocation.getArgument(1);
-                        request.setId(3L);
-                        request.setSlug("nha-xuat-ban-tre");
-                        request.setActive(true);
-                        return request;
-                });
+        when(publisherService.update(eq(3L), any(Publisher.class))).thenAnswer(invocation -> {
+            Publisher request = invocation.getArgument(1);
+            request.setId(3L);
+            request.setSlug("nha-xuat-ban-tre");
+            request.setActive(true);
+            return request;
+        });
 
         String body = """
                 {
                   "name": "Nha Xuat Ban Tre",
-                                                                        "slug": "tam",
+                  "slug": "tam",
                   "description": "NXB lon",
                   "contactEmail": "contact@nxbtre.vn",
-                                                                        "isActive": true
+                  "isActive": true
                 }
                 """;
 
@@ -71,9 +77,9 @@ class PublisherControllerTest {
         String body = """
                 {
                   "name": "Missing Publisher",
-                                                                        "slug": "tam",
-                                                                        "contactEmail": "missing@example.com",
-                                                                        "isActive": true
+                  "slug": "tam",
+                  "contactEmail": "missing@example.com",
+                  "isActive": true
                 }
                 """;
 
