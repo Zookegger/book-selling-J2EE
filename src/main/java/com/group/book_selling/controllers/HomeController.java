@@ -30,4 +30,19 @@ public class HomeController {
 
         return "index";
     }
+
+    @GetMapping("/about")
+    public String aboutPage() {
+        return "home/about";
+    }
+
+    @GetMapping("/contact")
+    public String contactPage() {
+        return "home/contact";
+    }
+
+    @GetMapping("/faq")
+    public String faqPage() {
+        return "home/faq";
+    }
 }

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+    <title>Giới thiệu - LuminaBook</title>
+    <style>
+        .about-hero {
+            background: linear-gradient(120deg, #eef6ff 0%, #fff8ef 100%);
+            border-radius: 24px;
+            padding: 2.5rem;
+        }
+
+        .about-stat {
+            border: 1px solid #e9ecef;
+            border-radius: 16px;
+            padding: 1rem;
+            background-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-xl my-4 py-3 flex-grow-1">
+        <section class="about-hero mb-4">
+            <p class="text-uppercase small fw-semibold text-primary mb-2">Câu chuyện của chúng tôi</p>
+            <h1 class="mb-3">LuminaBook - Nơi khởi đầu hành trình đọc sách ý nghĩa</h1>
+            <p class="text-muted mb-0">
+                LuminaBook được xây dựng với mong muốn kết nối người đọc với những đầu sách chất lượng,
+                từ sách học thuật, kỹ năng đến văn học và thiếu nhi. Chúng tôi tin rằng mỗi cuốn sách
+                đều có thể mở ra một góc nhìn mới và tạo động lực phát triển bền vững.
+            </p>
+        </section>
+
+        <section class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="about-stat h-100">
+                    <p class="text-muted small mb-1">Đầu sách</p>
+                    <p class="fs-4 fw-bold mb-2">5,000+</p>
+                    <p class="mb-0 text-muted">Đa dạng thể loại và cập nhật liên tục mỗi tuần.</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="about-stat h-100">
+                    <p class="text-muted small mb-1">Khách hàng</p>
+                    <p class="fs-4 fw-bold mb-2">30,000+</p>
+                    <p class="mb-0 text-muted">Cộng đồng bạn đọc đang tin tưởng và đồng hành.</p>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="about-stat h-100">
+                    <p class="text-muted small mb-1">Vận chuyển</p>
+                    <p class="fs-4 fw-bold mb-2">63 tỉnh thành</p>
+                    <p class="mb-0 text-muted">Giao hàng trên toàn quốc với nhiều tùy chọn linh hoạt.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="row g-4 align-items-start mb-4">
+            <div class="col-12 col-lg-6">
+                <h2 class="h4 mb-3">Giá trị cốt lõi</h2>
+                <ul class="list-group list-group-flush border rounded-3">
+                    <li class="list-group-item py-3">
+                        <strong>Tuyển chọn có định hướng:</strong>
+                        Mỗi đầu sách được đánh giá theo chất lượng nội dung và giá trị tri thức.
+                    </li>
+                    <li class="list-group-item py-3">
+                        <strong>Trải nghiệm minh bạch:</strong>
+                        Thông tin sản phẩm, giá bán, khuyến mãi và vận chuyển rõ ràng.
+                    </li>
+                    <li class="list-group-item py-3">
+                        <strong>Đồng hành lâu dài:</strong>
+                        Hỗ trợ sau bán hàng và tiếp nhận góp ý để nâng cấp dịch vụ liên tục.
+                    </li>
+                </ul>
+            </div>
+            <div class="col-12 col-lg-6">
+                <h2 class="h4 mb-3">Cam kết của LuminaBook</h2>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <p class="mb-2">Chúng tôi cam kết:</p>
+                        <ul class="mb-0">
+                            <li>Sách đúng mô tả, đóng gói cẩn thận.</li>
+                            <li>Phản hồi yêu cầu hỗ trợ nhanh trong giờ hành chính.</li>
+                            <li>Tối ưu luồng mua hàng để thanh toán và đặt đơn dễ dàng.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h4 mb-3">Bạn muốn khám phá ngay?</h2>
+                <p class="text-muted mb-3">Xem danh mục sách, tìm cuốn phù hợp và bắt đầu hành trình đọc hôm nay.</p>
+                <a class="btn btn-primary" th:href="@{/books}">Khám phá kho sách</a>
+            </div>
+        </section>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+
+</html>

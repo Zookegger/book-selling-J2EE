@@ -42,22 +42,7 @@
                     <i class="bi bi-ticket-perforated"></i>
                     <span class="label">Mã giảm giá</span>
                 </a>
-                <a class="sidebar-link" th:classappend="${activeMenu == 'books'} ? ' active' : ''" href="#"
-                    title="Quản lý sách">
-                    <i class="bi bi-book"></i>
-                    <span class="label">Sách</span>
-                </a>
-                <a class="sidebar-link" th:classappend="${activeMenu == 'categories'} ? ' active' : ''" href="#"
-                    title="Quản lý thể loại">
-                    <i class="bi bi-diagram-3"></i>
-                    <span class="label">Thể loại</span>
-                </a>
-                 <a class="sidebar-link" th:classappend="${activeMenu == 'publishers'} ? ' active' : ''" href="#"
-                    title="Quản lý nhà xuất bản">
-                    <i class="bi bi-building"></i>
-                    <span class="label">Nhà xuất bản</span>
-                </a>
-                <a class="sidebar-link" th:classappend="${activeMenu == 'users'} ? ' active' : ''" href="#"
+                <a class="sidebar-link" th:classappend="${activeMenu == 'users'} ? ' active' : ''" href="/admin/users"
                     title="Quản lý người dùng">
                     <i class="bi bi-people"></i>
                     <span class="label">Người dùng</span>
@@ -87,7 +72,7 @@
         </main>
     </div>
 
-    <th:block th:fragment="pageScripts">
+    <th:block>
         <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
         <script th:src="@{/js/jquery-4.0.0.min.js}"></script>
         <script th:src="@{/js/global.js}"></script>
@@ -106,6 +91,8 @@
             })();
         </script>
     </th:block>
+
+    <th:block th:if="${scripts != null}" th:replace="${scripts}"></th:block>
 </body>
 
 </html>
