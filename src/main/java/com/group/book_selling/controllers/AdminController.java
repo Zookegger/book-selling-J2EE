@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,7 @@ import com.group.book_selling.models.CustomUserDetail;
 import com.group.book_selling.models.User;
 import com.group.book_selling.models.UserRole;
 import com.group.book_selling.repositories.IUserRepository;
+import com.group.book_selling.services.AdminReportService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminController {
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AdminReportService adminReportService;
 
     @GetMapping
     public String overview() {
@@ -71,6 +74,16 @@ public class AdminController {
         model.addAttribute("keyword", normalizedKeyword);
 
         return "admin/user/list";
+    }
+
+    @GetMapping("/reports")
+    public String reports(
+            @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate from,
+            @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate to,
+            Model model) {
+        AdminReportService.ReportSnapshot report = adminReportService.buildReport(from, to);
+        model.addAttribute("report", report);
+        return "admin/report/overview";
     }
 
     @GetMapping("/users/create")
