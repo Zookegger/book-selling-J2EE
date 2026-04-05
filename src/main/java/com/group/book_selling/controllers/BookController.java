@@ -27,7 +27,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.group.book_selling.dto.Suggestion;
 import com.group.book_selling.models.Author;
 import com.group.book_selling.models.Book;
+import com.group.book_selling.models.BookFormatType;
 import com.group.book_selling.models.Category;
+import com.group.book_selling.models.DigitalFileFormat;
 import com.group.book_selling.services.BookService;
 
 import jakarta.validation.Valid;
@@ -85,8 +87,11 @@ public class BookController {
     public String create(@Valid @ModelAttribute("bookRequest") BookRequest request,
             BindingResult result,
             @RequestParam(value = "coverFile", required = false) MultipartFile coverFile,
+            @RequestParam(value = "formatFiles", required = false) List<MultipartFile> formatFiles,
             Model model,
             RedirectAttributes redirectAttributes) {
+
+        validateFormatFileUploads(request, formatFiles, result);
 
         if (result.hasErrors()) {
             addReferenceData(model);
@@ -115,6 +120,8 @@ public class BookController {
                 }
                 coverImagePath = "/uploads/" + fileName;
             }
+
+            applyUploadedFormatFiles(request, formatFiles);
 
             Book book = bookService.createBook(request, coverImagePath);
             redirectAttributes.addFlashAttribute("successMessage", "Tạo sách thành công.");
@@ -159,10 +166,13 @@ public class BookController {
             @Valid @ModelAttribute("bookRequest") BookRequest request,
             BindingResult result,
             @RequestParam(value = "coverFile", required = false) MultipartFile coverFile, // PHẢI thêm tham số này
+            @RequestParam(value = "formatFiles", required = false) List<MultipartFile> formatFiles,
             Model model,
             RedirectAttributes redirectAttributes) {
 
         Book existing = bookService.findBySlug(slug);
+
+        validateFormatFileUploads(request, formatFiles, result);
 
         if (result.hasErrors()) {
             addReferenceData(model);
@@ -192,6 +202,9 @@ public class BookController {
 
                 coverImagePath = "/uploads/" + fileName;
             }
+
+            preserveExistingFormatFileMetadata(existing, request, formatFiles);
+            applyUploadedFormatFiles(request, formatFiles);
 
             // 3. Lưu vào Database
             Book updated = bookService.updateBook(slug, request, coverImagePath);
@@ -249,9 +262,90 @@ public class BookController {
                 book.getFormats());
     }
 
+    private void applyUploadedFormatFiles(BookRequest request, List<MultipartFile> formatFiles) throws IOException {
+        if (request.formats() == null || request.formats().isEmpty() || formatFiles == null || formatFiles.isEmpty()) {
+            return;
+        }
+
+        int max = Math.min(request.formats().size(), formatFiles.size());
+        for (int i = 0; i < max; i++) {
+            MultipartFile uploadedFile = formatFiles.get(i);
+            if (uploadedFile == null || uploadedFile.isEmpty()) {
+                continue;
+            }
+
+            String storedPath = storeUploadedFile(uploadedFile, "uploads/formats");
+            request.formats().get(i).setFile(storedPath);
+            request.formats().get(i).setFileSize(uploadedFile.getSize());
+        }
+    }
+
+    private void validateFormatFileUploads(BookRequest request, List<MultipartFile> formatFiles, BindingResult result) {
+        if (request.formats() == null || request.formats().isEmpty() || formatFiles == null || formatFiles.isEmpty()) {
+            return;
+        }
+
+        int max = Math.min(request.formats().size(), formatFiles.size());
+        for (int i = 0; i < max; i++) {
+            MultipartFile uploadedFile = formatFiles.get(i);
+            if (uploadedFile == null || uploadedFile.isEmpty()) {
+                continue;
+            }
+
+            BookFormatType formatType = request.formats().get(i).getFormatType();
+            if (formatType == BookFormatType.PHYSICAL) {
+                result.rejectValue(
+                        "formats[" + i + "].formatType",
+                        "book.format.file.invalidType",
+                        "Định dạng PHYSICAL không được phép upload file.");
+            }
+        }
+    }
+
+    private void preserveExistingFormatFileMetadata(Book existing, BookRequest request, List<MultipartFile> formatFiles) {
+        if (existing == null || existing.getFormats() == null || existing.getFormats().isEmpty()
+                || request.formats() == null || request.formats().isEmpty()) {
+            return;
+        }
+
+        int max = Math.min(request.formats().size(), existing.getFormats().size());
+        for (int i = 0; i < max; i++) {
+            boolean hasNewFile = formatFiles != null
+                    && i < formatFiles.size()
+                    && formatFiles.get(i) != null
+                    && !formatFiles.get(i).isEmpty();
+
+            if (hasNewFile) {
+                continue;
+            }
+
+            request.formats().get(i).setFile(existing.getFormats().get(i).getFile());
+            request.formats().get(i).setFileSize(existing.getFormats().get(i).getFileSize());
+        }
+    }
+
+    private String storeUploadedFile(MultipartFile file, String uploadDir) throws IOException {
+        String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
+        String fileName = System.currentTimeMillis() + "_" + originalFileName;
+        Path uploadPath = Paths.get(uploadDir);
+
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        try (InputStream inputStream = file.getInputStream()) {
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        return "/uploads/formats/" + fileName;
+    }
+
     private void addReferenceData(Model model) {
         model.addAttribute("publishers", bookService.findAllPublishers());
         model.addAttribute("authors", bookService.findAllAuthors());
         model.addAttribute("categories", bookService.findAllCategories());
+        model.addAttribute("formatTypes", BookFormatType.values());
+        model.addAttribute("fileFormats", DigitalFileFormat.values());
     }
 }
