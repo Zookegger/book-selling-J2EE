@@ -21,7 +21,7 @@
 
 <body th:fragment="layout(pageTitle, activeMenu, content, scripts)">
     <div id="adminShell" class="admin-shell">
-        <aside class="admin-sidebar">
+        <aside class="admin-sidebar d-flex flex-column">
             <div class="sidebar-top">
                 <h1 class="brand">LuminaBook Admin</h1>
                 <button id="toggleSidebar" class="collapse-btn" type="button" title="Thu gọn thanh bên"
@@ -31,7 +31,7 @@
             </div>
 
             <p class="sidebar-heading text-uppercase small text-white-50 fw-semibold mb-2 px-2">Menu</p>
-            <nav class="sidebar-nav" aria-label="Điều hướng quản trị">
+            <nav class="sidebar-nav flex-grow-1" aria-label="Điều hướng quản trị">
                 <a class="sidebar-link" th:classappend="${activeMenu == 'overview'} ? ' active' : ''" href="/admin"
                     title="Tổng quan">
                     <i class="bi bi-speedometer2"></i>
@@ -58,6 +58,23 @@
                     <span class="label">Người dùng</span>
                 </a>
             </nav>
+            <div class="sidebar-bottom">
+                <div class="dropdown">
+                    <a class="btn w-100 text-start text-secondary px-2" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle fs-5 me-1"></i>
+                        <span class="text-decoration-none" th:text="${currentUser.getDisplayName()}"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li sec:authorize="hasRole('ADMIN')">
+                            <a class="dropdown-item fw-bold text-danger" th:href="@{/}">Khu vực nguời dùng</a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
         </aside>
 
         <main class="admin-main">
@@ -65,21 +82,25 @@
         </main>
     </div>
 
-    <th:block th:if="${scripts != null}" th:replace="${scripts}"></th:block>
+    <th:block th:fragment="pageScripts">
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+        <script th:src="@{/js/jquery-4.0.0.min.js}"></script>
+        <script th:src="@{/js/global.js}"></script>
 
-    <script>
-        (() => {
-            const shell = document.getElementById("adminShell");
-            const toggleBtn = document.getElementById("toggleSidebar");
+        <script>
+            (() => {
+                const shell = document.getElementById("adminShell");
+                const toggleBtn = document.getElementById("toggleSidebar");
 
-            toggleBtn.addEventListener("click", () => {
-                shell.classList.toggle("is-collapsed");
-                const collapsed = shell.classList.contains("is-collapsed");
-                toggleBtn.setAttribute("aria-label", collapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên");
-                toggleBtn.title = collapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên";
-            });
-        })();
-    </script>
+                toggleBtn.addEventListener("click", () => {
+                    shell.classList.toggle("is-collapsed");
+                    const collapsed = shell.classList.contains("is-collapsed");
+                    toggleBtn.setAttribute("aria-label", collapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên");
+                    toggleBtn.title = collapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên";
+                });
+            })();
+        </script>
+    </th:block>
 </body>
 
 </html>
