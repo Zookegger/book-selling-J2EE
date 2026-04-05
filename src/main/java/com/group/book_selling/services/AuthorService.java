@@ -31,14 +31,12 @@ public class AuthorService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay tac gia"));
     }
 
-    @Transactional
     public Author create(Author request) {
         request.setId(null);
         request.setSlug(SlugUtils.slugify(request.getName()));
         return authorRepository.save(request);
     }
 
-    @Transactional
     public Author update(Long id, Author request) {
         Author existing = findById(id);
 
@@ -52,7 +50,6 @@ public class AuthorService {
         return authorRepository.save(existing);
     }
 
-    @Transactional
     public void delete(Long id) {
         if (!authorRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay tac gia");

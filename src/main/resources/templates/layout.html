@@ -76,8 +76,7 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                                     <li sec:authorize="hasRole('ADMIN')">
-                                        <a class="dropdown-item fw-bold text-danger" th:href="@{/books}">Khu vực
-                                            Admin</a>
+                                        <a class="dropdown-item fw-bold text-danger" th:href="@{/admin}">Khu vực quản trị viên</a>
                                     </li>
                                     <li sec:authorize="hasRole('ADMIN')">
                                         <hr class="dropdown-divider">

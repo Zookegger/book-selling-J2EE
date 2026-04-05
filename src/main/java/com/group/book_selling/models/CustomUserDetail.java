@@ -38,6 +38,10 @@ public class CustomUserDetail implements UserDetails {
         return user.getEmail();
     }
 
+    public String getDisplayName() {
+        return user.getFirstName() + " " + user.getLastName(); 
+    }
+
     public String getEmail() {
         return user.getEmail();
     }

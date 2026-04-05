@@ -90,13 +90,13 @@ public class UserServices {
     }
 
     public void deleteUser(Long userId) {
-    userRepository.deleteById(userId);
+        userRepository.deleteById(userId);
     }
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     public boolean checkPassword(String raw, String encoded) {
-    return passwordEncoder.matches(raw, encoded);
+        return passwordEncoder.matches(raw, encoded);
     }
 }

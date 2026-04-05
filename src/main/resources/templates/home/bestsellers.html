@@ -10,7 +10,7 @@
 
     <div th:if="${!popularByCategory.isEmpty()}">
         <div th:each="entry : ${popularByCategory.entrySet()}">
-            <div class="mb-4">
+            <div class="mt-5 mb-4">
                 <h2 class="h4" th:text="${entry.key.name}"></h2>
                 <p class="text-muted">Top <span th:text="${entry.value.size()}"></span> cuốn mới nhất</p>
             </div>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:fragment="pageHead(pageTitle)">
+        <title th:text="${pageTitle}">Bảng điều khiển quản trị - LuminaBook</title>
+        <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/css/admin-global.css}" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.13.1/font/bootstrap-icons.min.css" />
+    </th:block>
+
+</head>
+
+<body th:fragment="layout(pageTitle, activeMenu, content, scripts)">
+    <div id="adminShell" class="admin-shell">
+        <aside class="admin-sidebar d-flex flex-column">
+            <div class="sidebar-top">
+                <h1 class="brand">LuminaBook Admin</h1>
+                <button id="toggleSidebar" class="collapse-btn" type="button" title="Thu gọn thanh bên"
+                    aria-label="Thu gọn thanh bên">
+                    <i class="bi bi-layout-sidebar-inset"></i>
+                </button>
+            </div>
+
+            <p class="sidebar-heading text-uppercase small text-white-50 fw-semibold mb-2 px-2">Menu</p>
+            <nav class="sidebar-nav flex-grow-1" aria-label="Điều hướng quản trị">
+                <a class="sidebar-link" th:classappend="${activeMenu == 'overview'} ? ' active' : ''" href="/admin"
+                    title="Tổng quan">
+                    <i class="bi bi-speedometer2"></i>
+                    <span class="label">Tổng quan</span>
+                </a>
+                <a class="sidebar-link" th:classappend="${activeMenu == 'coupon'} ? ' active' : ''" href="#"
+                    title="Quản lý mã giảm giá">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <span class="label">Mã giảm giá</span>
+                </a>
+                <a class="sidebar-link" th:classappend="${activeMenu == 'books'} ? ' active' : ''" href="#"
+                    title="Quản lý sách">
+                    <i class="bi bi-book"></i>
+                    <span class="label">Sách</span>
+                </a>
+                <a class="sidebar-link" th:classappend="${activeMenu == 'categories'} ? ' active' : ''" href="#"
+                    title="Quản lý thể loại">
+                    <i class="bi bi-diagram-3"></i>
+                    <span class="label">Thể loại</span>
+                </a>
+                <a class="sidebar-link" th:classappend="${activeMenu == 'users'} ? ' active' : ''" href="#"
+                    title="Quản lý người dùng">
+                    <i class="bi bi-people"></i>
+                    <span class="label">Người dùng</span>
+                </a>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="dropdown">
+                    <a class="btn w-100 text-start text-secondary px-2" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle fs-5 me-1"></i>
+                        <span class="text-decoration-none" th:text="${currentUser.getDisplayName()}"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li sec:authorize="hasRole('ADMIN')">
+                            <a class="dropdown-item fw-bold text-danger" th:href="@{/}">Khu vực nguời dùng</a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <main class="admin-main">
+            <div th:replace="${content}"></div>
+        </main>
+    </div>
+
+    <th:block th:fragment="pageScripts">
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+        <script th:src="@{/js/jquery-4.0.0.min.js}"></script>
+        <script th:src="@{/js/global.js}"></script>
+
+        <script>
+            (() => {
+                const shell = document.getElementById("adminShell");
+                const toggleBtn = document.getElementById("toggleSidebar");
+
+                toggleBtn.addEventListener("click", () => {
+                    shell.classList.toggle("is-collapsed");
+                    const collapsed = shell.classList.contains("is-collapsed");
+                    toggleBtn.setAttribute("aria-label", collapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên");
+                    toggleBtn.title = collapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên";
+                });
+            })();
+        </script>
+    </th:block>
+</body>
+
+</html>
