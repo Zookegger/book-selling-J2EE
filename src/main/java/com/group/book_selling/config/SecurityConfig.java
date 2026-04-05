@@ -47,6 +47,9 @@ public class SecurityConfig {
                                                 .hasRole(UserRole.ADMIN.name())
                                                 .requestMatchers(
                                                                 "/",
+                                                                "/about",
+                                                                "/contact",
+                                                                "/faq",
                                                                 "/login",
                                                                 "/register",
                                                                 "/verify-email",

@@ -112,6 +112,9 @@ public class User {
     @Builder.Default
     private boolean isEmailVerified = false;
 
+    @Builder.Default
+    private boolean isAccountLocked = false;
+
     private String emailVerificationToken;
     private LocalDateTime emailVerificationExpires;
 
