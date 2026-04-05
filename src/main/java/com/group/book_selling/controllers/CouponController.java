@@ -1,7 +1,6 @@
 package com.group.book_selling.controllers;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +19,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.group.book_selling.models.Cart;
 import com.group.book_selling.models.Coupon;
-import com.group.book_selling.models.CouponType;
 import com.group.book_selling.models.CouponUsage;
 import com.group.book_selling.models.CustomUserDetail;
 import com.group.book_selling.models.User;
@@ -133,12 +131,12 @@ public class CouponController {
         }
 
         try {
-            Coupon applied = couponService.applyCoupon(code, user.getId());
+            Coupon applied = couponService.validateCouponForUser(code, user.getId());
 
             Cart cart = CartSessionUtils.getOrCreate(session);
             BigDecimal subtotal = cart.getTotalPrice("VND");
             BigDecimal tax = cart.getTotalTax("VND");
-            BigDecimal discount = calculateDiscount(subtotal, applied);
+            BigDecimal discount = couponService.calculateDiscount(subtotal, applied);
             BigDecimal finalTotal = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
 
             session.setAttribute("appliedCouponCode", applied.getCode());
@@ -156,20 +154,5 @@ public class CouponController {
                     "success", false,
                     "message", ex.getReason() == null ? "Áp dụng mã giảm giá thất bại." : ex.getReason()));
         }
-    }
-
-    private BigDecimal calculateDiscount(BigDecimal subtotal, Coupon coupon) {
-        if (subtotal == null || coupon == null || coupon.getDiscountAmount() == null || coupon.getDiscountAmount() <= 0) {
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal discountValue = BigDecimal.valueOf(coupon.getDiscountAmount());
-        if (coupon.getDiscountType() == CouponType.PERCENTAGE) {
-            return subtotal.multiply(discountValue)
-                    .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP)
-                    .min(subtotal);
-        }
-
-        return discountValue.max(BigDecimal.ZERO).min(subtotal);
     }
 }

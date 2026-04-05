@@ -1,7 +1,6 @@
 package com.group.book_selling.controllers;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.group.book_selling.models.Cart;
 import com.group.book_selling.models.Coupon;
-import com.group.book_selling.models.CouponType;
 import com.group.book_selling.services.CartService;
 import com.group.book_selling.services.CouponService;
 import com.group.book_selling.utils.CartSessionUtils;
@@ -37,8 +35,8 @@ public class CartController {
         Cart cart = CartSessionUtils.getOrCreate(session);
         var subtotal = cart.getTotalPrice("VND");
         var tax = cart.getTotalTax("VND");
-        Coupon appliedCoupon = resolveAppliedCoupon(session);
-        BigDecimal discount = calculateDiscount(subtotal, appliedCoupon);
+        Coupon appliedCoupon = couponService.resolveAppliedCoupon(session);
+        BigDecimal discount = couponService.calculateDiscount(subtotal, appliedCoupon);
         var total = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
 
         model.addAttribute("cart", cart);
@@ -84,13 +82,19 @@ public class CartController {
 
             var subtotal = cart.getTotalPrice("VND");
             var tax = cart.getTotalTax("VND");
-                Coupon appliedCoupon = resolveAppliedCoupon(session);
-                BigDecimal discount = calculateDiscount(subtotal, appliedCoupon);
-                var total = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
+            Coupon appliedCoupon = couponService.resolveAppliedCoupon(session);
+            BigDecimal discount = couponService.calculateDiscount(subtotal, appliedCoupon);
+            var total = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
+            var updatedItem = cart.getItems().stream()
+                    .filter(item -> item.getSku().equals(sku))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Không tìm thấy sản phẩm trong giỏ hàng."));
+            var lineTotal = updatedItem.getSubtotal();
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "qty", qty,
+                    "qty", updatedItem.getQty(),
+                    "lineTotal", lineTotal,
                     "subtotal", subtotal,
                     "tax", tax,
                     "discount", discount,
@@ -118,40 +122,5 @@ public class CartController {
             redirectAttrs.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/cart/view";
-    }
-
-    private Coupon resolveAppliedCoupon(HttpSession session) {
-        Object appliedCode = session.getAttribute("appliedCouponCode");
-        if (!(appliedCode instanceof String code) || code.isBlank()) {
-            return null;
-        }
-
-        Coupon coupon = couponService.findByCode(code);
-        if (coupon == null) {
-            session.removeAttribute("appliedCouponCode");
-            return null;
-        }
-
-        if (couponService.findValidCoupons().stream().noneMatch(c -> c.getId().equals(coupon.getId()))) {
-            session.removeAttribute("appliedCouponCode");
-            return null;
-        }
-
-        return coupon;
-    }
-
-    private BigDecimal calculateDiscount(BigDecimal subtotal, Coupon coupon) {
-        if (subtotal == null || coupon == null || coupon.getDiscountAmount() == null || coupon.getDiscountAmount() <= 0) {
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal discountValue = BigDecimal.valueOf(coupon.getDiscountAmount());
-        if (coupon.getDiscountType() == CouponType.PERCENTAGE) {
-            return subtotal.multiply(discountValue)
-                    .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP)
-                    .min(subtotal);
-        }
-
-        return discountValue.max(BigDecimal.ZERO).min(subtotal);
     }
 }
