@@ -112,8 +112,8 @@
 					<form class="text-start mb-5" id="couponForm">
 						<label for="couponInput" class="form-label">Coupon</label>
 						<div class="input-group">
-							<input class="form-control" id="couponInput" placeholder="Nhập mã giảm giá"
-								th:value="${couponCode}">
+							<input type="text" class="form-control" id="couponInput" name="code"
+								placeholder="Nhập mã giảm giá" autocomplete="off" th:value="${couponCode}">
 							<button type="submit" class="btn btn-primary">Áp dụng</button>
 						</div>
 					</form>
