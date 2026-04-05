@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+    <title>LuminaBook - Trang chủ</title>
+    <style>
+        .hero {
+            padding: 6rem 0;
+            text-align: center;
+            background-color: hsla(210, 100%, 98%);
+        }
+    </style>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <div class="hero">
+        <h1>Chào mừng đến với LuminaBook</h1>
+        <p>Tìm sách yêu thích tiếp theo của bạn.</p>
+        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+            <a class="btn btn-primary" th:href="@{/books}">Xem sách</a>
+        </div>
+    </div>
+
+    <main class="container-xl flex-grow-1 py-5">
+
+        <th:block th:replace="~{home/bestsellers :: bestsellers}"></th:block>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+
+</html>

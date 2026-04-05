@@ -1,0 +1,44 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="detailModal">
+	<div class="modal fade" id="couponDetailModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content border-0 shadow">
+				<div class="modal-header">
+					<h2 class="modal-title h5 fw-bold">Chi tiết mã giảm giá</h2>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body">
+					<dl class="row mb-0">
+						<dt class="col-5 text-muted">Mã</dt>
+						<dd class="col-7 fw-bold" id="detailCode">-</dd>
+
+						<dt class="col-5 text-muted">Loại giảm</dt>
+						<dd class="col-7" id="detailDiscountType">-</dd>
+
+						<dt class="col-5 text-muted">Giá trị</dt>
+						<dd class="col-7" id="detailDiscountAmount">-</dd>
+
+						<dt class="col-5 text-muted">Bắt đầu</dt>
+						<dd class="col-7" id="detailValidFrom">-</dd>
+
+						<dt class="col-5 text-muted">Hết hạn</dt>
+						<dd class="col-7" id="detailExpiresAt">-</dd>
+
+						<dt class="col-5 text-muted">Tạo lúc</dt>
+						<dd class="col-7" id="detailCreatedAt">-</dd>
+
+						<dt class="col-5 text-muted">Cập nhật</dt>
+						<dd class="col-7" id="detailUpdatedAt">-</dd>
+
+						<dt class="col-5 text-muted">Mô tả</dt>
+						<dd class="col-7" id="detailDescription">-</dd>
+					</dl>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</th:block>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{admin/dashboard :: pageHead('Quản lý người dùng')}" />
+</head>
+
+<body>
+    <th:block
+        th:replace="~{admin/dashboard :: layout('Quản lý người dùng', 'users', ~{::mainContent}, ~{::pageScripts})}">
+
+        <th:block th:fragment="mainContent">
+            <div class="d-flex flex-column gap-4">
+                <div th:if="${successMessage}" class="alert alert-success mb-0" role="alert"
+                    th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-danger mb-0" role="alert" th:text="${errorMessage}">
+                </div>
+
+                <section class="welcome-card card p-4 p-md-5">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div>
+                            <p class="text-uppercase small fw-semibold text-primary mb-2">Hệ thống quản trị</p>
+                            <h2 class="h3 fw-bold mb-2">Quản lý người dùng</h2>
+                            <p class="text-muted mb-0">Theo dõi tài khoản, trạng thái xác thực email và vai trò người
+                                dùng trong hệ thống.</p>
+                        </div>
+                        <button class="btn btn-dark px-3" type="button" data-bs-toggle="modal"
+                            data-bs-target="#createUserModal">
+                            <i class="bi bi-person-plus me-2"></i>Tạo tài khoản
+                        </button>
+                    </div>
+                </section>
+
+                <section class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <article class="card stat-card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <p class="small text-uppercase fw-semibold text-secondary mb-2">Tổng người dùng</p>
+                                <p class="display-6 fw-bold mb-0" th:text="${totalUsers}">0</p>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <article class="card stat-card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <p class="small text-uppercase fw-semibold text-secondary mb-2">Quản trị viên</p>
+                                <p class="display-6 fw-bold mb-0" th:text="${adminCount}">0</p>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <article class="card stat-card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <p class="small text-uppercase fw-semibold text-secondary mb-2">Chưa xác thực email</p>
+                                <p class="display-6 fw-bold mb-0" th:text="${unverifiedCount}">0</p>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="card border-0 shadow-sm">
+                    <div class="card-body p-3 p-md-4">
+                        <form method="get" th:action="@{/admin/users}"
+                            class="d-flex flex-column flex-xl-row justify-content-between gap-3 mb-4">
+
+                            <div class="input-group flex-grow-1 shadow-sm">
+                                <span class="input-group-text bg-white text-muted border-end-0">
+                                    <i class="fa-solid fa-magnifying-glass text-dark"></i>
+                                </span>
+                                <input id="userSearch" name="q" type="search"
+                                    class="form-control border-start-0 ps-0 shadow-none"
+                                    placeholder="Tìm theo tên, email hoặc số điện thoại..." th:value="${keyword}">
+                                <button class="btn btn-primary px-4 fw-medium" type="submit">
+                                    Lọc
+                                </button>
+                            </div>
+
+                            <div class="d-flex gap-2 flex-wrap justify-content-xl-end align-items-center">
+                                <button class="btn btn-sm rounded-pill"
+                                    th:classappend="${selectedRole == 'ALL'} ? 'btn-dark' : 'btn-outline-dark'"
+                                    type="submit" name="role" value="ALL">
+                                    <i class="fa-solid fa-users-viewfinder me-1"></i> Tất cả
+                                </button>
+
+                                <button class="btn btn-sm rounded-pill"
+                                    th:classappend="${selectedRole == 'ADMIN'} ? 'btn-danger' : 'btn-outline-danger'"
+                                    type="submit" name="role" value="ADMIN">
+                                    <i class="fa-solid fa-user-shield me-1"></i> Quản trị viên
+                                </button>
+
+                                <button class="btn btn-sm rounded-pill"
+                                    th:classappend="${selectedRole == 'USER'} ? 'btn-info' : 'btn-outline-info'"
+                                    type="submit" name="role" value="USER">
+                                    <i class="fa-solid fa-user me-1"></i> Người dùng
+                                </button>
+                            </div>
+
+                        </form>
+
+                        <div class="table-responsive">
+                            <table id="userTable" class="table align-middle table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Người dùng</th>
+                                        <th scope="col">Liên hệ</th>
+                                        <th scope="col">Vai trò</th>
+                                        <th scope="col">Trạng thái tài khoản</th>
+                                        <th scope="col">Xác thực email</th>
+                                        <th scope="col">Ngày tạo</th>
+                                        <th scope="col" class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(users)}">
+                                        <td colspan="8" class="text-center text-muted py-4">Chưa có người dùng nào.</td>
+                                    </tr>
+                                    <tr th:each="user, iter : ${users}">
+                                        <td class="text-secondary" th:text="${iter.count}">1</td>
+                                        <td>
+                                            <div class="fw-semibold" th:text="${user.firstName + ' ' + user.lastName}">
+                                                Nguyen Van A</div>
+                                            <div class="text-muted small" th:text="${user.email}">name@email.com</div>
+                                        </td>
+                                        <td>
+                                            <span class="small text-muted"
+                                                th:text="${#strings.isEmpty(user.phoneNumber) ? 'Chưa cập nhật' : user.phoneNumber}">0900000000</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge"
+                                                th:classappend="${user.role.name() == 'ADMIN'} ? ' bg-danger-subtle text-danger-emphasis' : ' bg-primary-subtle text-primary-emphasis'"
+                                                th:text="${user.role}">USER</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge"
+                                                th:classappend="${user.accountLocked} ? ' bg-danger-subtle text-danger-emphasis' : ' bg-success-subtle text-success-emphasis'"
+                                                th:text="${user.accountLocked} ? 'Đang khóa' : 'Hoạt động'">Hoạt
+                                                động</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge"
+                                                th:classappend="${user.emailVerified} ? ' bg-success-subtle text-success-emphasis' : ' bg-warning-subtle text-warning-emphasis'"
+                                                th:text="${user.emailVerified} ? 'Đã xác thực' : 'Chưa xác thực'">Đã xác
+                                                thực</span>
+                                        </td>
+                                        <td class="text-nowrap"
+                                            th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm') : '--'}">
+                                            01/01/2026 08:30</td>
+                                        <td class="text-end">
+                                            <a th:href="@{/admin/users/{id}(id=${user.id})}"
+                                                class="btn btn-sm btn-light border me-1" title="Xem chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-light border me-1"
+                                                title="Sửa người dùng" data-bs-toggle="modal"
+                                                data-bs-target="#editUserModal" th:attr="
+                                                    data-id=${user.id},
+                                                    data-first-name=${user.firstName},
+                                                    data-last-name=${user.lastName},
+                                                    data-email=${user.email},
+                                                    data-phone=${user.phoneNumber},
+                                                    data-role=${user.role},
+                                                    data-email-verified=${user.emailVerified}">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <form th:action="@{/admin/users/{id}/toggle-lock(id=${user.id})}"
+                                                method="post" class="d-inline">
+                                                <input type="hidden" name="role" th:value="${selectedRole}">
+                                                <input type="hidden" name="q" th:value="${keyword}">
+                                                <button type="submit" class="btn btn-sm border"
+                                                    th:classappend="${user.accountLocked} ? ' btn-success-subtle text-success-emphasis border-success-subtle' : ' btn-danger-subtle text-danger-emphasis border-danger-subtle'"
+                                                    th:title="${user.accountLocked} ? 'Mở khóa tài khoản' : 'Khóa tài khoản'">
+                                                    <i class="bi"
+                                                        th:classappend="${user.accountLocked} ? ' bi-unlock' : ' bi-lock'"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <form method="post" th:action="@{/admin/users}">
+                                <div class="modal-header">
+                                    <h3 class="modal-title fs-5" id="createUserModalLabel">Tạo tài khoản người dùng</h3>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Đóng"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Họ</label>
+                                            <input type="text" class="form-control" name="firstName" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Tên</label>
+                                            <input type="text" class="form-control" name="lastName" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" class="form-control" name="email" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Số điện thoại</label>
+                                            <input type="text" class="form-control" name="phoneNumber">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Mật khẩu</label>
+                                            <input type="password" class="form-control" name="password" minlength="6"
+                                                required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Vai trò</label>
+                                            <select class="form-select" name="role">
+                                                <option value="USER" selected>USER</option>
+                                                <option value="ADMIN">ADMIN</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="emailVerified"
+                                                    id="createEmailVerified">
+                                                <label class="form-check-label" for="createEmailVerified">Đánh dấu đã
+                                                    xác thực email</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        data-bs-dismiss="modal">Hủy</button>
+                                    <button type="submit" class="btn btn-dark">Tạo tài khoản</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <form id="editUserForm" method="post">
+                                <input type="hidden" name="q" th:value="${keyword}">
+                                <input type="hidden" name="selectedRole" th:value="${selectedRole}">
+                                <div class="modal-header">
+                                    <h3 class="modal-title fs-5" id="editUserModalLabel">Cập nhật người dùng</h3>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Đóng"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Họ</label>
+                                            <input id="editFirstName" type="text" class="form-control" name="firstName"
+                                                required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Tên</label>
+                                            <input id="editLastName" type="text" class="form-control" name="lastName"
+                                                required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Email</label>
+                                            <input id="editEmail" type="email" class="form-control" name="email"
+                                                required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Số điện thoại</label>
+                                            <input id="editPhoneNumber" type="text" class="form-control"
+                                                name="phoneNumber">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Mật khẩu mới (để trống nếu không đổi)</label>
+                                            <input id="editPassword" type="password" class="form-control"
+                                                name="password" minlength="6">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Vai trò</label>
+                                            <select id="editRole" class="form-select" name="role">
+                                                <option value="USER">USER</option>
+                                                <option value="ADMIN">ADMIN</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input id="editEmailVerified" class="form-check-input" type="checkbox"
+                                                    name="emailVerified">
+                                                <label class="form-check-label" for="editEmailVerified">Đánh dấu đã xác
+                                                    thực email</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        data-bs-dismiss="modal">Hủy</button>
+                                    <button type="submit" class="btn btn-dark">Lưu thay đổi</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+
+        <th:block th:fragment="pageScripts">
+            <style>
+                .stat-card {
+                    background: linear-gradient(145deg, #ffffff 0%, #f7f9ff 100%);
+                }
+
+                .search-icon {
+                    position: absolute;
+                    left: 1rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: #6c757d;
+                }
+            </style>
+
+            <script>
+                (() => {
+                    const editModal = document.getElementById("editUserModal");
+                    const editForm = document.getElementById("editUserForm");
+
+                    if (!editModal || !editForm) {
+                        return;
+                    }
+
+                    editModal.addEventListener("show.bs.modal", (event) => {
+                        const trigger = event.relatedTarget;
+                        if (!trigger) {
+                            return;
+                        }
+
+                        const userId = trigger.getAttribute("data-id");
+                        editForm.setAttribute("action", `/admin/users/${userId}/update`);
+
+                        document.getElementById("editFirstName").value = trigger.getAttribute("data-first-name") || "";
+                        document.getElementById("editLastName").value = trigger.getAttribute("data-last-name") || "";
+                        document.getElementById("editEmail").value = trigger.getAttribute("data-email") || "";
+                        document.getElementById("editPhoneNumber").value = trigger.getAttribute("data-phone") || "";
+                        document.getElementById("editPassword").value = "";
+                        document.getElementById("editRole").value = trigger.getAttribute("data-role") || "USER";
+                        document.getElementById("editEmailVerified").checked = trigger.getAttribute("data-email-verified") === "true";
+                    });
+                })();
+            </script>
+        </th:block>
+
+    </th:block>
+</body>
+
+</html>

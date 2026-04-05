@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{admin/dashboard :: pageHead('Bảng điều khiển quản trị')}" />
+    <style>
+        .coupon-card {
+            border: 0;
+            border-radius: 1rem;
+        }
+
+        .coupon-chip {
+            letter-spacing: 0.08em;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+
+<body>
+    <th:block
+        th:replace="~{admin/dashboard :: layout('Quản lý mã giảm giá', 'coupon', ~{::mainContent}, ~{::pageScripts})}">
+        <th:block th:fragment="mainContent">
+            <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+                <div>
+                    <h1 class="h3 fw-bold mb-1">Quản lý mã giảm giá</h1>
+                    <p class="text-muted mb-0">Tạo, chỉnh sửa và theo dõi hiệu lực mã giảm giá trong một màn hình.</p>
+                </div>
+                <button class="btn btn-primary px-4" type="button" data-bs-toggle="modal"
+                    data-bs-target="#couponFormModal" id="openCreateModalBtn">
+                    <i class="fa fa-plus me-2"></i> Tạo mã mới
+                </button>
+            </div>
+
+            <div th:if="${#lists.isEmpty(coupons)}" class="coupon-card card shadow-sm">
+                <div class="card-body p-5 text-center">
+                    <i class="fa fa-ticket-alt fa-3x text-muted mb-3"></i>
+                    <h2 class="h5 fw-bold">Chưa có mã giảm giá nào</h2>
+                    <p class="text-muted mb-4">Hãy tạo mã đầu tiên để bắt đầu chương trình khuyến mãi.</p>
+                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                        data-bs-target="#couponFormModal">
+                        Tạo mã giảm giá
+                    </button>
+                </div>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(coupons)}" class="coupon-card card shadow-sm">
+                <div class="table-responsive-xxl">
+                    <table class="table align-middle mb-0" style="min-width: 950px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Mã</th>
+                                <th>Loại giảm</th>
+                                <th>Giá trị</th>
+                                <th>Hiệu lực</th>
+                                <th>Cập nhật</th>
+                                <th class="text-end pe-4">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="cp : ${coupons}">
+                                <td class="ps-4">
+                                    <span class="badge bg-dark-subtle text-dark coupon-chip px-3 py-2"
+                                        th:text="${cp.code}">WELCOME10</span>
+                                    <button class="btn btn-sm btn-outline-secondary copy-btn" th:data-code="${cp.code}"
+                                        onclick="copyToClipboard(this)" title="Sao chép mã">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <span
+                                        th:text="${cp.discountType.name() == 'PERCENTAGE' ? 'Phần trăm' : 'Tiền mặt'}">Phần
+                                        trăm</span>
+                                </td>
+                                <td>
+                                    <span
+                                        th:text="${cp.discountType.name() == 'PERCENTAGE' ? #numbers.formatDecimal(cp.discountAmount, 1, 2) + '%' : #numbers.formatDecimal(cp.discountAmount, 1, 0, 'COMMA') + ' VND'}">10%</span>
+                                </td>
+                                <td>
+                                    <div class="small text-muted">
+                                        <div>
+                                            <i class="fa fa-play me-1"></i>
+                                            <span
+                                                th:text="${#temporals.format(cp.validFrom, 'dd/MM/yyyy HH:mm')}">01/01/2026
+                                                10:00</span>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-hourglass-end me-1"></i>
+                                            <span
+                                                th:text="${#temporals.format(cp.expiresAt, 'dd/MM/yyyy HH:mm')}">15/01/2026
+                                                23:59</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-muted small"
+                                        th:text="${#temporals.format(cp.updatedAt, 'dd/MM/yyyy HH:mm')}">02/01/2026
+                                        08:00</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-light border" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#couponDetailModal" th:attr="data-id=${cp.id},
+													 data-code=${cp.code},
+													 data-description=${cp.description},
+													 data-discount-type=${cp.discountType.name()},
+													 data-discount-amount=${cp.discountAmount},
+													 data-valid-from=${#temporals.format(cp.validFrom, 'dd/MM/yyyy HH:mm')},
+													 data-expires-at=${#temporals.format(cp.expiresAt, 'dd/MM/yyyy HH:mm')},
+													 data-created-at=${#temporals.format(cp.createdAt, 'dd/MM/yyyy HH:mm')},
+													 data-updated-at=${#temporals.format(cp.updatedAt, 'dd/MM/yyyy HH:mm')}" title="Chi tiết">
+                                            <i class="fa fa-eye text-secondary"></i>
+                                        </button>
+
+                                        <button class="btn btn-light border" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#couponFormModal" th:attr="data-id=${cp.id},
+													 data-code=${cp.code},
+													 data-description=${cp.description},
+													 data-discount-type=${cp.discountType.name()},
+													 data-discount-amount=${cp.discountAmount},
+													 data-valid-from=${#temporals.format(cp.validFrom, 'yyyy-MM-dd''T''HH:mm')},
+													 data-expires-at=${#temporals.format(cp.expiresAt, 'yyyy-MM-dd''T''HH:mm')}" title="Sửa">
+                                            <i class="fa fa-pen text-primary"></i>
+                                        </button>
+
+                                        <form th:action="@{/coupons/{id}/delete(id=${cp.id})}" method="post"
+                                            th:onsubmit="return confirm('Xóa mã [' + [[${cp.code}]] + ']?');"
+                                            class="d-inline">
+                                            <button class="btn btn-light border text-danger" type="submit" title="Xóa">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </th:block>
+    </th:block>
+
+    <th:block th:replace="~{admin/coupon/form :: formModal}"></th:block>
+    <th:block th:replace="~{admin/coupon/detail :: detailModal}"></th:block>
+
+    <script th:inline="javascript" th:fragment="pageScripts">
+        function copyToClipboard(button) {
+            const code = button.getAttribute('data-code');
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check"></i> Đã sao chép';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Lỗi sao chép: ', err);
+            });
+        }
+
+        (() => {
+            const formModal = document.getElementById("couponFormModal");
+            const detailModal = document.getElementById("couponDetailModal");
+
+            const formTitle = document.getElementById("couponFormTitle");
+            const couponForm = document.getElementById("couponForm");
+            const submitText = document.getElementById("couponFormSubmitText");
+
+            const fieldCode = document.getElementById("couponCode");
+            const fieldDescription = document.getElementById("couponDescription");
+            const fieldDiscountType = document.getElementById("couponDiscountType");
+            const fieldDiscountAmount = document.getElementById("couponDiscountAmount");
+            const fieldValidFrom = document.getElementById("couponValidFrom");
+            const fieldExpiresAt = document.getElementById("couponExpiresAt");
+            const amountHint = document.getElementById("discountAmountHint");
+
+            const detailMapping = {
+                code: document.getElementById("detailCode"),
+                description: document.getElementById("detailDescription"),
+                discountType: document.getElementById("detailDiscountType"),
+                discountAmount: document.getElementById("detailDiscountAmount"),
+                validFrom: document.getElementById("detailValidFrom"),
+                expiresAt: document.getElementById("detailExpiresAt"),
+                createdAt: document.getElementById("detailCreatedAt"),
+                updatedAt: document.getElementById("detailUpdatedAt")
+            };
+
+            const setAmountHint = () => {
+                amountHint.textContent = fieldDiscountType.value === "PERCENTAGE"
+                    ? "Nhập theo phần trăm. Ví dụ: 10 = giảm 10%"
+                    : "Nhập số tiền giảm trực tiếp theo VND.";
+            };
+
+            const resetCreateMode = () => {
+                formTitle.textContent = "Tạo mã giảm giá";
+                submitText.textContent = "Tạo mã";
+                couponForm.action = "/coupons/create";
+                couponForm.reset();
+                fieldDiscountType.value = "PERCENTAGE";
+                setAmountHint();
+            };
+
+            formModal.addEventListener("show.bs.modal", event => {
+                const trigger = event.relatedTarget;
+                if (!trigger || !trigger.dataset || !trigger.dataset.id) {
+                    resetCreateMode();
+                    return;
+                }
+
+                formTitle.textContent = "Cập nhật mã giảm giá";
+                submitText.textContent = "Lưu thay đổi";
+                couponForm.action = `/coupons/${trigger.dataset.id}/edit`;
+
+                fieldCode.value = trigger.dataset.code || "";
+                fieldDescription.value = trigger.dataset.description || "";
+                fieldDiscountType.value = trigger.dataset.discountType || "PERCENTAGE";
+                fieldDiscountAmount.value = trigger.dataset.discountAmount || "";
+                fieldValidFrom.value = trigger.dataset.validFrom || "";
+                fieldExpiresAt.value = trigger.dataset.expiresAt || "";
+                setAmountHint();
+            });
+
+            detailModal.addEventListener("show.bs.modal", event => {
+                const trigger = event.relatedTarget;
+                if (!trigger || !trigger.dataset) {
+                    return;
+                }
+
+                detailMapping.code.textContent = trigger.dataset.code || "-";
+                detailMapping.description.textContent = trigger.dataset.description || "Không có mô tả";
+                detailMapping.discountType.textContent = trigger.dataset.discountType === "PERCENTAGE"
+                    ? "Phần trăm"
+                    : "Tiền mặt";
+                detailMapping.discountAmount.textContent = trigger.dataset.discountType === "PERCENTAGE"
+                    ? `${trigger.dataset.discountAmount || 0}%`
+                    : `${trigger.dataset.discountAmount || 0} VND`;
+                detailMapping.validFrom.textContent = trigger.dataset.validFrom || "-";
+                detailMapping.expiresAt.textContent = trigger.dataset.expiresAt || "-";
+                detailMapping.createdAt.textContent = trigger.dataset.createdAt || "-";
+                detailMapping.updatedAt.textContent = trigger.dataset.updatedAt || "-";
+            });
+
+            fieldDiscountType.addEventListener("change", setAmountHint);
+            resetCreateMode();
+
+            const openCreateModal = /*[[${openCreateModal}]]*/ false;
+            if (openCreateModal) {
+                const modal = bootstrap.Modal.getOrCreateInstance(formModal);
+                modal.show();
+            }
+
+            const openEditModal = /*[[${openEditModal}]]*/ false;
+            if (openEditModal) {
+                const modal = bootstrap.Modal.getOrCreateInstance(formModal);
+                modal.show();
+            }
+        })();
+    </script>
+</body>
+
+</html>

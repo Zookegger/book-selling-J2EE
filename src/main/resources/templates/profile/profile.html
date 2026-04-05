@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+    <title>Hồ sơ người dùng - LuminaBook</title>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container flex-grow-1 py-5">
+
+        <div th:if="${successMessage}" class="alert alert-success mt-3">
+            <span th:text="${successMessage}"></span>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger mt-3">
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <div class="profile-header text-white p-4 mb-4" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center position-relative">
+                    <div
+                        style="width:120px;height:120px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto;">
+                        <i class="bi bi-person-fill fs-1 text-primary"></i>
+                    </div>
+                </div>
+
+                <div class="col-md-9">
+                    <h3 th:text="${user.firstName + ' ' + user.lastName}"></h3>
+
+                    <p>
+                        <i class="bi bi-envelope"></i>
+                        <span th:text="${user.email}"></span>
+                    </p>
+
+                    <p th:if="${user.phoneNumber != null}">
+                        <i class="bi bi-telephone"></i>
+                        <span th:text="${user.phoneNumber}"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <button class="nav-link" th:classappend="${activeTab == 'personal'} ? ' active'" data-bs-toggle="tab"
+                    data-bs-target="#personal" type="button">
+                    Thông tin cá nhân
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" th:classappend="${activeTab == 'addresses'} ? ' active'" data-bs-toggle="tab"
+                    data-bs-target="#addresses" type="button">
+                    Địa chỉ
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" th:classappend="${activeTab == 'security'} ? ' active'" data-bs-toggle="tab"
+                    data-bs-target="#security" type="button">
+                    Bảo mật
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content bg-white p-4 shadow-sm">
+            <div class="tab-pane fade" id="personal" th:classappend="${activeTab == 'personal'} ? ' show active'">
+                <form th:action="@{/profile/update-personal}" method="post" th:object="${personalInfoForm}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName">Họ</label>
+                            <input type="text" id="firstName" class="form-control" th:field="*{firstName}">
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('firstName')}"
+                                th:errors="*{firstName}"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName">Tên</label>
+                            <input type="text" id="lastName" class="form-control" th:field="*{lastName}">
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('lastName')}"
+                                th:errors="*{lastName}"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input type="email" class="form-control" th:value="${user.email}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone">SĐT</label>
+                        <input type="text" id="phone" class="form-control" th:field="*{phone}">
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary mt-2" type="submit">Cập nhật</button>
+                </form>
+            </div>
+
+            <div class="tab-pane fade" id="addresses" th:classappend="${activeTab == 'addresses'} ? ' show active'">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Địa chỉ giao hàng</h5>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#addAddressModal">
+                        <i class="bi bi-plus-circle"></i> Thêm địa chỉ
+                    </button>
+                </div>
+
+                <div th:if="${user.addresses != null and user.addresses.size() > 0}">
+                    <div th:each="address,iterStat : ${user.addresses}" class="mb-3 border p-3 rounded shadow-sm">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-2 fw-bold" th:text="${address.recipientName}"></h6>
+                                <p class="mb-1 text-muted">
+                                    <i class="bi bi-telephone"></i>
+                                    <span th:text="${address.phoneNumber}"></span>
+                                </p>
+                                <p class="mb-0 small text-muted address-display" th:attr="data-street=${address.streetDetails},
+                                             data-ward-code=${address.ward},
+                                             data-district-code=${address.district},
+                                             data-province-code=${address.provinceOrCity}"
+                                    th:text="${address.streetDetails + ', ' + address.ward + ', ' + address.district + ', ' + address.provinceOrCity}">
+                                </p>
+                            </div>
+
+                            <div class="text-end">
+                                <div class="d-flex gap-2 justify-content-end mb-2">
+                                    <button type="button" class="btn btn-sm btn-light border rounded-circle"
+                                        style="width:35px;height:35px;" onclick="editAddress(this)"
+                                        data-bs-toggle="modal" data-bs-target="#editAddressModal" title="Sửa" th:attr="data-index=${iterStat.index},
+                                                 data-recipient-name=${address.recipientName},
+                                                 data-phone-number=${address.phoneNumber},
+                                                 data-province=${address.provinceOrCity},
+                                                 data-district=${address.district},
+                                                 data-ward=${address.ward},
+                                                 data-street=${address.streetDetails},
+                                                 data-default=${address.isDefault}">
+                                        <i class="bi bi-pencil-fill text-warning"></i>
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm btn-light border rounded-circle"
+                                        style="width:35px;height:35px;" th:onclick="|deleteAddress(${iterStat.index})|"
+                                        title="Xóa">
+                                        <i class="bi bi-trash-fill text-danger"></i>
+                                    </button>
+                                </div>
+
+                                <div th:if="${address.isDefault}" class="badge bg-success">
+                                    Địa chỉ mặc định
+                                </div>
+                                <button th:unless="${address.isDefault}" class="btn btn-sm btn-outline-secondary mt-1"
+                                    th:onclick="|setDefaultAddress(${iterStat.index})|" type="button">
+                                    Đặt làm mặc định
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${user.addresses == null or user.addresses.size() == 0}">
+                    <p class="text-muted mb-0">Chưa có địa chỉ nào.</p>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="security" th:classappend="${activeTab == 'security'} ? ' show active'">
+                <h5 class="mb-4">Đổi mật khẩu</h5>
+                <form th:action="@{/profile/change-password}" method="post" id="changePasswordForm"
+                    th:object="${changePasswordForm}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="currentPassword"
+                                        th:field="*{currentPassword}">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        onclick="togglePasswordVisibility('currentPassword', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('currentPassword')}"
+                                    th:errors="*{currentPassword}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="newPassword"
+                                        th:field="*{newPassword}" onkeyup="validatePassword()">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        onclick="togglePasswordVisibility('newPassword', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('newPassword')}"
+                                    th:errors="*{newPassword}"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="confirmPassword"
+                                        th:field="*{confirmPassword}">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        onclick="togglePasswordVisibility('confirmPassword', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('confirmPassword')}"
+                                    th:errors="*{confirmPassword}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="d-block">
+                            <div id="passwordRequirements" class="text-muted">
+                                <i class="bi bi-info-circle"></i> Mật khẩu phải có:
+                                <div class="ms-3 mt-1">
+                                    <span id="reqLength"><i class="bi bi-circle"></i> Ít nhất 6 ký tự</span><br>
+                                    <span id="reqUpper"><i class="bi bi-circle"></i> Chữ hoa (A-Z)</span><br>
+                                    <span id="reqLower"><i class="bi bi-circle"></i> Chữ thường (a-z)</span><br>
+                                    <span id="reqDigit"><i class="bi bi-circle"></i> Số (0-9)</span>
+                                </div>
+                            </div>
+                        </small>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-lock"></i> Đổi mật khẩu
+                        </button>
+
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#deleteAccountModal">
+                            <i class="bi bi-trash"></i> Xóa tài khoản
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{profile/modals/add-address-modal :: addAddressModal}"></th:block>
+    <th:block th:replace="~{profile/modals/edit-address-modal :: editAddressModal}"></th:block>
+    <th:block th:replace="~{profile/modals/delete-account-modal :: deleteAccountModal}"></th:block>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+
+    <script th:inline="javascript">
+        const initialOpenModal = /*[[${openModal}]]*/ null;
+
+        function togglePasswordVisibility(fieldId, button) {
+            const field = document.getElementById(fieldId);
+            const icon = button.querySelector('i');
+            if (!field || !icon) {
+                return;
+            }
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        function validatePassword() {
+            const password = document.getElementById('newPassword')?.value ?? '';
+            updateRequirement('reqLength', password.length >= 6);
+            updateRequirement('reqUpper', /[A-Z]/.test(password));
+            updateRequirement('reqLower', /[a-z]/.test(password));
+            updateRequirement('reqDigit', /\d/.test(password));
+        }
+
+        function updateRequirement(elementId, isValid) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                return;
+            }
+
+            const icon = element.querySelector('i');
+            if (!icon) {
+                return;
+            }
+
+            if (isValid) {
+                element.classList.remove('text-muted');
+                element.classList.add('text-success', 'fw-bold');
+                icon.classList.remove('bi-circle');
+                icon.classList.add('bi-check-circle-fill');
+            } else {
+                element.classList.remove('text-success', 'fw-bold');
+                element.classList.add('text-muted');
+                icon.classList.remove('bi-check-circle-fill');
+                icon.classList.add('bi-circle');
+            }
+        }
+
+        function deleteAddress(index) {
+            if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) {
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/profile/delete-address';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'addressIndex';
+            input.value = index;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function setDefaultAddress(index) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/profile/set-default-address';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'addressIndex';
+            input.value = index;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        async function loadDistrictAdd(selectedDistrict = null, selectedWard = null) {
+            const provinceCode = document.getElementById('newProvinceOrCity')?.value;
+            await window.locationUtils.loadDistricts('newDistrict', provinceCode, selectedDistrict);
+            await window.locationUtils.loadWards('newWard', document.getElementById('newDistrict')?.value, selectedWard);
+        }
+
+        async function loadWardAdd(selectedWard = null) {
+            const districtCode = document.getElementById('newDistrict')?.value;
+            await window.locationUtils.loadWards('newWard', districtCode, selectedWard);
+        }
+
+        async function loadDistrictEdit(selectedDistrict = null, selectedWard = null) {
+            const provinceCode = document.getElementById('editProvinceOrCity')?.value;
+            await window.locationUtils.loadDistricts('editDistrict', provinceCode, selectedDistrict);
+            await window.locationUtils.loadWards('editWard', document.getElementById('editDistrict')?.value, selectedWard);
+        }
+
+        async function loadWardEdit(selectedWard = null) {
+            const districtCode = document.getElementById('editDistrict')?.value;
+            await window.locationUtils.loadWards('editWard', districtCode, selectedWard);
+        }
+
+        async function editAddress(trigger) {
+            const index = trigger.dataset.index;
+            const recipientName = trigger.dataset.recipientName;
+            const phoneNumber = trigger.dataset.phoneNumber;
+            const province = trigger.dataset.province;
+            const district = trigger.dataset.district;
+            const ward = trigger.dataset.ward;
+            const street = trigger.dataset.street;
+            const isDefault = trigger.dataset.default === 'true';
+
+            document.getElementById('editAddressIndex').value = index;
+            document.getElementById('editRecipientName').value = recipientName;
+            document.getElementById('editPhoneNumber').value = phoneNumber;
+            document.getElementById('editStreetDetails').value = street;
+            document.getElementById('editIsDefault').checked = isDefault;
+
+            await window.locationUtils.loadProvinces('editProvinceOrCity', province);
+            await window.locationUtils.loadDistricts('editDistrict', province, district);
+            await window.locationUtils.loadWards('editWard', district, ward);
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            validatePassword();
+
+            const addProvince = document.getElementById('newProvinceOrCity');
+            const addDistrict = document.getElementById('newDistrict');
+            const addWard = document.getElementById('newWard');
+
+            if (addProvince) {
+                await window.locationUtils.loadProvinces('newProvinceOrCity', addProvince.value || null);
+                if (addProvince.value) {
+                    await window.locationUtils.loadDistricts('newDistrict', addProvince.value, addDistrict?.value || null);
+                    if (addDistrict?.value) {
+                        await window.locationUtils.loadWards('newWard', addDistrict.value, addWard?.value || null);
+                    }
+                }
+            }
+
+            const editProvince = document.getElementById('editProvinceOrCity');
+            const editDistrict = document.getElementById('editDistrict');
+            const editWard = document.getElementById('editWard');
+
+            if (editProvince && editProvince.value) {
+                await window.locationUtils.loadProvinces('editProvinceOrCity', editProvince.value);
+                await window.locationUtils.loadDistricts('editDistrict', editProvince.value, editDistrict?.value || null);
+                if (editDistrict?.value) {
+                    await window.locationUtils.loadWards('editWard', editDistrict.value, editWard?.value || null);
+                }
+            } else if (editProvince) {
+                await window.locationUtils.loadProvinces('editProvinceOrCity');
+            }
+
+            if (initialOpenModal) {
+                const modalElement = document.getElementById(initialOpenModal);
+                if (modalElement) {
+                    new bootstrap.Modal(modalElement).show();
+                }
+            }
+
+            const addressLines = document.querySelectorAll('.address-display[data-province-code]');
+            await Promise.all(Array.from(addressLines).map(window.locationUtils.resolveAddressDisplayLine));
+        });
+    </script>
+</body>
+
+</html>

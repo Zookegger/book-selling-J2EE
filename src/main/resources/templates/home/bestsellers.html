@@ -1,0 +1,23 @@
+<th:block th:fragment="bestsellers" xmlns:th="http://www.thymeleaf.org">
+    <div class="mb-4">
+        <h1 class="h3">Sách phổ biến theo thể loại</h1>
+        <p class="text-muted">Xem nhanh những đầu sách hàng đầu trong mỗi thể loại.</p>
+    </div>
+
+    <div th:if="${popularByCategory.isEmpty()}">
+        <div class="alert alert-info">Chưa có dữ liệu sách phổ biến.</div>
+    </div>
+
+    <div th:if="${!popularByCategory.isEmpty()}">
+        <div th:each="entry : ${popularByCategory.entrySet()}">
+            <div class="mt-5 mb-4">
+                <h2 class="h4" th:text="${entry.key.name}"></h2>
+                <p class="text-muted">Top <span th:text="${entry.value.size()}"></span> cuốn mới nhất</p>
+            </div>
+
+            <th:block th:replace="~{books/components/bookGrid :: bookGrid(books=${entry.value}, isAdmin=${false})}">
+            </th:block>
+
+        </div>
+    </div>
+</th:block>

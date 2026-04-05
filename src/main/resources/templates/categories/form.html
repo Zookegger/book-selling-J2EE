@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle} + ' - LuminaBook'"></title>
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+</head>
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-md py-5" style="max-width: 800px;">
+        <div class="mb-4">
+            <a th:href="@{/categories}" class="btn btn-sm btn-link text-decoration-none text-secondary p-0">
+                <i class="fa fa-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 pt-4 px-4 px-md-5">
+                <h2 class="fw-bold text-dark mb-0">
+                    <i th:class="${category.id != null} ? 'fa fa-edit text-primary me-2' : 'fa fa-plus-circle text-success me-2'"></i>
+                    <span th:text="${pageTitle}">Tiêu đề trang</span>
+                </h2>
+            </div>
+            
+            <div class="card-body p-4 p-md-5">
+                <form th:action="@{/categories/save}" th:object="${category}" method="post">
+                    <input type="hidden" th:field="*{id}" />
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-uppercase small text-muted">Tên thể loại <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{name}" class="form-control form-control-lg border-0 bg-light" 
+                               placeholder="VD: Công nghệ thông tin, Văn học..." required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-uppercase small text-muted">Danh mục cha</label>
+                        <select th:field="*{parent}" class="form-select border-0 bg-light">
+                            <option value="">-- Không có (Là danh mục gốc) --</option>
+                            <option th:each="p : ${parents}" 
+                                    th:value="${p.id}" 
+                                    th:text="${p.name}"></option>
+                        </select>
+                        <div class="form-text">Dùng để tạo cấu trúc cây danh mục (Ví dụ: Lập trình là con của Công nghệ).</div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-uppercase small text-muted">Thứ tự hiển thị</label>
+                            <input type="number" th:field="*{orderIndex}" class="form-control border-0 bg-light" placeholder="0">
+                        </div>
+                        <div class="col-md-6" th:if="*{id != null}">
+                            <label class="form-label fw-bold text-uppercase small text-muted">Đường dẫn (Slug)</label>
+                            <input type="text" th:field="*{slug}" class="form-control border-0 bg-light text-muted" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-uppercase small text-muted">Mô tả thể loại</label>
+                        <textarea th:field="*{description}" class="form-control border-0 bg-light" rows="5" 
+                                  placeholder="Nhập mô tả chi tiết về thể loại này..."></textarea>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow-sm">
+                            <i class="fa fa-save me-2"></i> Lưu thay đổi
+                        </button>
+                        <a th:href="@{/categories}" class="btn btn-light px-4 py-2">Hủy bỏ</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{admin/dashboard :: pageHead('Tạo tài khoản người dùng')}" />
+</head>
+
+<body>
+    <th:block th:replace="~{admin/dashboard :: layout('Tạo tài khoản người dùng', 'users', ~{::mainContent}, ~{::pageScripts})}">
+        <th:block th:fragment="mainContent">
+            <div class="d-flex flex-column gap-4">
+                <section class="welcome-card card p-4 p-md-5">
+                    <p class="text-uppercase small fw-semibold text-primary mb-2">Hệ thống quản trị</p>
+                    <h2 class="h3 fw-bold mb-2">Tạo tài khoản người dùng</h2>
+                    <p class="text-muted mb-0">Tạo nhanh tài khoản mới và gán vai trò cho người dùng.</p>
+                </section>
+
+                <section class="card border-0 shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <form th:action="@{/admin/users}" th:object="${userForm}" method="post" class="row g-3">
+                            <div class="col-md-6">
+                                <label for="firstName" class="form-label">Họ</label>
+                                <input id="firstName" type="text" th:field="*{firstName}" class="form-control"
+                                    th:classappend="${#fields.hasErrors('firstName')} ? ' is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="lastName" class="form-label">Tên</label>
+                                <input id="lastName" type="text" th:field="*{lastName}" class="form-control"
+                                    th:classappend="${#fields.hasErrors('lastName')} ? ' is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input id="email" type="email" th:field="*{email}" class="form-control"
+                                    th:classappend="${#fields.hasErrors('email')} ? ' is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phoneNumber" class="form-label">Số điện thoại</label>
+                                <input id="phoneNumber" type="text" th:field="*{phoneNumber}" class="form-control"
+                                    th:classappend="${#fields.hasErrors('phoneNumber')} ? ' is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">Mật khẩu</label>
+                                <input id="password" type="password" th:field="*{password}" class="form-control"
+                                    th:classappend="${#fields.hasErrors('password')} ? ' is-invalid' : ''">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="role" class="form-label">Vai trò</label>
+                                <select id="role" th:field="*{role}" class="form-select">
+                                    <option value="USER">USER</option>
+                                    <option value="ADMIN">ADMIN</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input id="emailVerified" type="checkbox" th:field="*{emailVerified}" class="form-check-input">
+                                    <label for="emailVerified" class="form-check-label">Đánh dấu đã xác thực email</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-flex gap-2">
+                                <button type="submit" class="btn btn-dark px-4">Tạo tài khoản</button>
+                                <a th:href="@{/admin/users}" class="btn btn-outline-secondary">Quay lại danh sách</a>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </th:block>
+
+        <th:block th:fragment="pageScripts"></th:block>
+    </th:block>
+</body>
+
+</html>

@@ -1,0 +1,65 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="formModal">
+	<div class="modal fade" id="couponFormModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content border-0 shadow">
+				<div class="modal-header">
+					<h2 class="modal-title h5 fw-bold" id="couponFormTitle">Tạo mã giảm giá</h2>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<form id="couponForm" method="post" th:object="${coupon}">
+					<div class="modal-body">
+						<div class="row g-3">
+							<div class="col-md-6">
+								<label for="couponCode" class="form-label fw-semibold">Mã giảm giá</label>
+								<input id="couponCode" class="form-control" type="text" th:field="*{code}" maxlength="50"
+									placeholder="VD: SUMMER2026" required>
+							</div>
+
+							<div class="col-md-6">
+								<label for="couponDiscountType" class="form-label fw-semibold">Loại giảm giá</label>
+								<select id="couponDiscountType" class="form-select" th:field="*{discountType}" required>
+									<option value="PERCENTAGE">Phần trăm (%)</option>
+									<option value="FIXED_AMOUNT">Số tiền cố định (VND)</option>
+								</select>
+							</div>
+
+							<div class="col-12">
+								<label for="couponDiscountAmount" class="form-label fw-semibold">Giá trị giảm</label>
+								<input id="couponDiscountAmount" class="form-control" type="number" min="0" step="0.01"
+									th:field="*{discountAmount}" required>
+								<div id="discountAmountHint" class="form-text">Nhập theo phần trăm. Ví dụ: 10 = giảm 10%</div>
+							</div>
+
+							<div class="col-md-6">
+								<label for="couponValidFrom" class="form-label fw-semibold">Bắt đầu hiệu lực</label>
+								<input id="couponValidFrom" class="form-control" type="datetime-local" th:field="*{validFrom}"
+									required>
+							</div>
+
+							<div class="col-md-6">
+								<label for="couponExpiresAt" class="form-label fw-semibold">Hết hiệu lực</label>
+								<input id="couponExpiresAt" class="form-control" type="datetime-local" th:field="*{expiresAt}"
+									required>
+							</div>
+
+							<div class="col-12">
+								<label for="couponDescription" class="form-label fw-semibold">Mô tả</label>
+								<textarea id="couponDescription" class="form-control" th:field="*{description}" rows="3"
+									maxlength="255" placeholder="Điều kiện hoặc ghi chú cho mã giảm giá..."></textarea>
+							</div>
+						</div>
+					</div>
+
+					<div class="modal-footer">
+						<button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+						<button type="submit" class="btn btn-primary px-4">
+							<i class="fa fa-save me-1"></i>
+							<span id="couponFormSubmitText">Tạo mã</span>
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</th:block>

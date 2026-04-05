@@ -1,0 +1,103 @@
+package com.group.book_selling.controllers;
+
+import java.util.List;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.group.book_selling.models.Book;
+import com.group.book_selling.models.Category;
+import com.group.book_selling.services.BookService;
+import com.group.book_selling.services.CategoryService;
+
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Controller cho danh mục sách.
+ */
+@Controller
+@RequestMapping("/categories")
+@RequiredArgsConstructor
+public class CategoryController {
+
+    private final CategoryService categoryService;
+    private final BookService bookService;
+
+    /** Trang danh sách. */
+    @GetMapping
+    public String list(Model model) {
+        List<Category> allCategories = categoryService.findAll();
+        model.addAttribute("categories", allCategories); 
+
+        return "categories/list";
+    }
+
+    /** Trang chi tiết danh mục và sách thuộc danh mục. */
+    @GetMapping("/{slug}")
+    public String categoryBooks(
+            @PathVariable String slug,
+            @RequestParam(required = false) String keyword,
+            Model model) {
+
+        Category category = categoryService.findBySlug(slug);
+        List<Book> books = bookService.findBooksByCategorySlug(slug);
+        List<Category> allCategories = categoryService.findAll();
+
+        model.addAttribute("category", category);
+        model.addAttribute("books", books);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedCategory", slug);
+        model.addAttribute("categories", allCategories); // The data for your filter UI
+
+        return "categories/list";
+    }
+
+    /** Trang tạo mới. */
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("category", new Category());
+        model.addAttribute("parents", categoryService.findAll());
+        model.addAttribute("pageTitle", "Thêm Thể loại mới");
+        return "categories/form";
+    }
+
+    /** Trang chỉnh sửa. */
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        Category category = categoryService.findById(id);
+        List<Category> parents = categoryService.findAllExceptId(id);
+
+        model.addAttribute("category", category);
+        model.addAttribute("parents", parents);
+        model.addAttribute("pageTitle", "Chỉnh sửa: " + category.getName());
+        return "categories/form";
+    }
+
+    /** Lưu dữ liệu. */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/save")
+    public String save(@ModelAttribute Category category, RedirectAttributes ra) {
+        categoryService.save(category);
+        ra.addFlashAttribute("successMessage", "Đã lưu danh mục thành công!");
+        return "redirect:/categories";
+    }
+
+    /** Xóa danh mục. */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id, RedirectAttributes ra) {
+        categoryService.delete(id);
+        ra.addFlashAttribute("successMessage", "Đã xóa danh mục.");
+        return "redirect:/categories";
+    }
+}

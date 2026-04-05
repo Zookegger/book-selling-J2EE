@@ -1,0 +1,62 @@
+<th:block th:fragment="editAddressModal" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal fade" id="editAddressModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sửa địa chỉ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/profile/update-address}" method="post" id="editAddressForm" th:object="${editAddressForm}">
+                    <input type="hidden" id="editAddressIndex" th:field="*{addressIndex}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editRecipientName" class="form-label">Tên người nhận</label>
+                            <input type="text" class="form-control" id="editRecipientName" th:field="*{recipientName}">
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('recipientName')}" th:errors="*{recipientName}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPhoneNumber" class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" id="editPhoneNumber" th:field="*{phoneNumber}">
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProvinceOrCity" class="form-label">Tỉnh/Thành phố</label>
+                            <select class="form-select" id="editProvinceOrCity" th:field="*{provinceOrCity}" onchange="loadDistrictEdit()">
+                                <option value="">-- Chọn tỉnh/thành phố --</option>
+                            </select>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('provinceOrCity')}" th:errors="*{provinceOrCity}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDistrict" class="form-label">Quận/Huyện</label>
+                            <select class="form-select" id="editDistrict" th:field="*{district}" onchange="loadWardEdit()">
+                                <option value="">-- Chọn quận/huyện --</option>
+                            </select>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('district')}" th:errors="*{district}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editWard" class="form-label">Phường/Xã</label>
+                            <select class="form-select" id="editWard" th:field="*{ward}">
+                                <option value="">-- Chọn phường/xã --</option>
+                            </select>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('ward')}" th:errors="*{ward}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStreetDetails" class="form-label">Địa chỉ chi tiết</label>
+                            <textarea class="form-control" id="editStreetDetails" th:field="*{streetDetails}" rows="2"></textarea>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('streetDetails')}" th:errors="*{streetDetails}"></div>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="editIsDefault" th:field="*{defaultAddress}">
+                            <label class="form-check-label" for="editIsDefault">Đặt làm địa chỉ mặc định</label>
+                        </div>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('addressIndex')}" th:errors="*{addressIndex}"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</th:block>

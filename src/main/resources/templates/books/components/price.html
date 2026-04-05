@@ -1,0 +1,33 @@
+<!-- 
+    Price fragment
+    Sử dụng như sau:
+    <span th:insert="~{books/components/price :: price(price=${item.price}, quantity=${item.quantity}, currency='VND')}"></span>
+
+    Giải thích:
+    - price() là tên fragment, có thể chứa các tham số để truyền dữ liệu vào.
+        + price: giá tiền cần hiển thị (bắt buộc)
+        + quantity: số lượng (tùy chọn, nếu có sẽ hiển thị tổng)
+        + currency: đơn vị tiền tệ (tùy chọn, mặc định là VND)
+  -->
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="price(price, quantity, currency)">
+    <th:block th:if="${price != null}">
+        <span th:if="${quantity != null}" class="price"
+            th:attr="data-price-value=${price},data-price-quantity=${quantity},data-price-currency=${currency != null ? currency : 'VND'},aria-label=${price + ' ' + (currency != null ? currency : 'VND')}">
+            <span th:text="${price}"></span>
+        </span>
+
+        <span th:unless="${quantity != null}" class="price"
+            th:attr="data-price-value=${price},data-price-currency=${currency != null ? currency : 'VND'},aria-label=${price + ' ' + (currency != null ? currency : 'VND')}">
+            <span th:text="${price}"></span>
+        </span>
+    </th:block>
+
+    <span th:if="${price == null}" class="text-muted">Chưa có giá</span>
+
+    <!-- Nếu JavaScript bị tắt, hiển thị giá đơn giản -->
+    <noscript>
+        <span th:if="${price != null}" th:text="${price + ' ' + (currency != null ? currency : 'VND')}"></span>
+        <span th:if="${price == null}" class="text-muted">Chưa có giá</span>
+    </noscript>
+
+</th:block>

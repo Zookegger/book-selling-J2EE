@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{admin/dashboard :: pageHead('Chi tiết người dùng')}" />
+</head>
+
+<body>
+    <th:block th:replace="~{admin/dashboard :: layout('Chi tiết người dùng', 'users', ~{::mainContent}, ~{::pageScripts})}">
+        <th:block th:fragment="mainContent">
+            <div class="d-flex flex-column gap-4">
+                <section class="welcome-card card p-4 p-md-5">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <p class="text-uppercase small fw-semibold text-primary mb-2">Chi tiết tài khoản</p>
+                            <h2 class="h3 fw-bold mb-2" th:text="${userDetail.firstName + ' ' + userDetail.lastName}">Tên người dùng</h2>
+                            <p class="text-muted mb-0" th:text="${userDetail.email}">email@example.com</p>
+                        </div>
+                        <a th:href="@{/admin/users}" class="btn btn-outline-secondary">Quay lại danh sách</a>
+                    </div>
+                </section>
+
+                <section class="row g-3">
+                    <div class="col-12 col-lg-8">
+                        <article class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4">
+                                <h3 class="h5 fw-bold mb-3">Thông tin cơ bản</h3>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="text-muted small d-block mb-1">Họ và tên</label>
+                                        <div class="fw-semibold" th:text="${userDetail.firstName + ' ' + userDetail.lastName}">Nguyen Van A</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small d-block mb-1">Email</label>
+                                        <div class="fw-semibold" th:text="${userDetail.email}">email@example.com</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small d-block mb-1">Số điện thoại</label>
+                                        <div class="fw-semibold" th:text="${#strings.isEmpty(userDetail.phoneNumber) ? 'Chưa cập nhật' : userDetail.phoneNumber}">0900000000</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small d-block mb-1">Vai trò</label>
+                                        <span class="badge"
+                                            th:classappend="${userDetail.role.name() == 'ADMIN'} ? ' bg-danger-subtle text-danger-emphasis' : ' bg-primary-subtle text-primary-emphasis'"
+                                            th:text="${userDetail.role}">USER</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small d-block mb-1">Trạng thái tài khoản</label>
+                                        <span class="badge"
+                                            th:classappend="${userDetail.accountLocked} ? ' bg-danger-subtle text-danger-emphasis' : ' bg-success-subtle text-success-emphasis'"
+                                            th:text="${userDetail.accountLocked} ? 'Đang khóa' : 'Hoạt động'">Hoạt động</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small d-block mb-1">Xác thực email</label>
+                                        <span class="badge"
+                                            th:classappend="${userDetail.emailVerified} ? ' bg-success-subtle text-success-emphasis' : ' bg-warning-subtle text-warning-emphasis'"
+                                            th:text="${userDetail.emailVerified} ? 'Đã xác thực' : 'Chưa xác thực'">Đã xác thực</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="col-12 col-lg-4">
+                        <article class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4 d-flex flex-column gap-3">
+                                <h3 class="h5 fw-bold mb-1">Mốc thời gian</h3>
+                                <div>
+                                    <label class="text-muted small d-block mb-1">Ngày tạo</label>
+                                    <div class="fw-semibold" th:text="${userDetail.createdAt != null ? #temporals.format(userDetail.createdAt, 'dd/MM/yyyy HH:mm') : '--'}">01/01/2026 08:30</div>
+                                </div>
+                                <div>
+                                    <label class="text-muted small d-block mb-1">Cập nhật gần nhất</label>
+                                    <div class="fw-semibold" th:text="${userDetail.updatedAt != null ? #temporals.format(userDetail.updatedAt, 'dd/MM/yyyy HH:mm') : '--'}">01/01/2026 08:30</div>
+                                </div>
+                                <div>
+                                    <label class="text-muted small d-block mb-1">Số địa chỉ đã lưu</label>
+                                    <div class="fw-semibold" th:text="${#lists.size(userDetail.addresses)}">0</div>
+                                </div>
+                                <div>
+                                    <label class="text-muted small d-block mb-1">Số sách yêu thích</label>
+                                    <div class="fw-semibold" th:text="${#lists.size(userDetail.wishList)}">0</div>
+                                </div>
+                                <form th:action="@{/admin/users/{id}/toggle-lock(id=${userDetail.id})}" method="post" class="pt-2">
+                                    <button type="submit" class="btn w-100"
+                                        th:classappend="${userDetail.accountLocked} ? ' btn-success' : ' btn-danger'"
+                                        th:text="${userDetail.accountLocked} ? 'Mở khóa tài khoản' : 'Khóa tài khoản'">Khóa tài khoản</button>
+                                </form>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </th:block>
+
+        <th:block th:fragment="pageScripts"></th:block>
+    </th:block>
+</body>
+
+</html>

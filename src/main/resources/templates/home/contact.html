@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+    <title>Liên hệ - LuminaBook</title>
+    <style>
+        .contact-hero {
+            border-radius: 24px;
+            background: linear-gradient(120deg, #f5fff7 0%, #edf6ff 100%);
+            padding: 2.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-xl my-4 py-3 flex-grow-1">
+        <section class="contact-hero mb-4">
+            <p class="text-uppercase small fw-semibold text-success mb-2">Hỗ trợ khách hàng</p>
+            <h1 class="mb-2">Liên hệ với LuminaBook</h1>
+            <p class="mb-0 text-muted">Cần tư vấn sách, hỗ trợ đơn hàng hay hợp tác? Đội ngũ LuminaBook sẵn sàng đồng hành.</p>
+        </section>
+
+        <div class="row g-4">
+            <div class="col-12 col-lg-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h2 class="h5 mb-3">Gửi yêu cầu</h2>
+                        <form>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="fullName" class="form-label">Họ và tên</label>
+                                    <input type="text" class="form-control" id="fullName" placeholder="Nguyễn Văn A">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" placeholder="you@example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label">Số điện thoại</label>
+                                    <input type="tel" class="form-control" id="phone" placeholder="09xxxxxxxx">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="topic" class="form-label">Chủ đề</label>
+                                    <select id="topic" class="form-select">
+                                        <option selected>Hỗ trợ đơn hàng</option>
+                                        <option>Tư vấn sản phẩm</option>
+                                        <option>Khiếu nại - bảo hành</option>
+                                        <option>Hợp tác doanh nghiệp</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label for="message" class="form-label">Nội dung</label>
+                                    <textarea id="message" class="form-control" rows="5"
+                                        placeholder="Hãy mô tả chi tiết vấn đề của bạn..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small class="text-muted">Thông tin này đang ở chế độ demo UI.</small>
+                                <button type="button" class="btn btn-primary">Gửi thông tin</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-5">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-4">
+                        <h2 class="h5 mb-3">Thông tin liên hệ</h2>
+                        <p class="mb-2"><i class="bi bi-geo-alt me-2"></i> 123 Đường Sách, Quận 1, TP. Hồ Chí Minh</p>
+                        <p class="mb-2"><i class="bi bi-telephone me-2"></i> 1900 2026</p>
+                        <p class="mb-0"><i class="bi bi-envelope me-2"></i> support@luminabook.vn</p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h5 mb-3">Giờ làm việc</h2>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2 d-flex justify-content-between"><span>Thứ 2 - Thứ 6</span><strong>08:30 - 18:00</strong></li>
+                            <li class="mb-2 d-flex justify-content-between"><span>Thứ 7</span><strong>09:00 - 17:00</strong></li>
+                            <li class="d-flex justify-content-between"><span>Chủ nhật</span><strong>Nghỉ</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+
+</html>

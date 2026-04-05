@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<th:block th:replace="~{layout :: link-css}"></th:block>
+	<title>Giỏ hàng — LuminaBook</title>
+	<style>
+		.cart-thumb {
+			width: 64px;
+			height: 64px;
+			object-fit: cover;
+		}
+
+		.quantity-input {
+			width: 80px;
+		}
+	</style>
+</head>
+
+<body>
+	<th:block th:replace="~{layout::header}"></th:block>
+
+	<main class="container-xl flex-grow-1 my-4">
+		<h1 class="mb-4">Giỏ hàng</h1>
+
+		<div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+			<span th:text="${success}"></span>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+		<div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+			<span th:text="${error}"></span>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+		</div>
+
+		<div th:if="${cart != null and !cart.isEmpty()}">
+			<div class="table-responsive">
+				<table class="table align-middle">
+					<thead>
+						<tr>
+							<th>Sản phẩm</th>
+							<th class="text-start">Giá</th>
+							<th style="width:140px">Số lượng</th>
+							<th class="text-end">Thành tiền</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="item : ${cart.getItems()}">
+							<td>
+								<div class="d-flex align-items-center gap-3">
+									<img th:src="${item.coverImage}" alt="" class="cart-thumb rounded"
+										th:if="${item.coverImage != null and !item.coverImage.isBlank()}">
+									<div th:if="${item.coverImage == null or item.coverImage.isBlank()}"
+										class="cart-thumb rounded bg-light d-flex align-items-center justify-content-center text-muted small">
+										<i class="fa fa-book"></i>
+									</div>
+									<div>
+										<a th:href="@{/books/{slug}(slug=${item.slug})}" th:text="${item.title}"
+											class="text-decoration-none">Tên sách</a>
+										<div class="text-muted small" th:switch="${item.formatType.name()}">
+											<span th:case="'PHYSICAL'">Bản in</span>
+											<span th:case="'DIGITAL'">eBook</span>
+											<span th:case="'AUDIOBOOK'">Audiobook</span>
+											<span th:case="*">Khác</span>
+										</div>
+									</div>
+								</div>
+							</td>
+							<td class="text-start"
+								th:insert="~{books/components/price :: price(price=${item.unitPrice}, quantity=1, currency='VND')}">
+							</td>
+							<td>
+								<form th:action="@{/cart/update}" method="post" class="d-flex gap-2 align-items-center"
+									th:if="${item.formatType.name() == 'PHYSICAL'}">
+									<input type="hidden" name="bookId" th:value="${item.bookId}" />
+									<input type="hidden" name="sku" th:value="${item.sku}" />
+									<input type="number" name="qty" min="1"
+										class="form-control form-control-sm quantity-input" th:value="${item.qty}" />
+									<input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+										th:value="${_csrf.token}" />
+								</form>
+							</td>
+
+							<td class="text-end"
+								th:insert="~{books/components/price :: price(price=${item.unitPrice}, quantity=${item.qty}, currency='VND')}">
+							</td>
+							<td class="text-end">
+								<form th:action="@{/cart/remove}" method="post">
+									<input type="hidden" name="sku" th:value="${item.sku}" />
+									<button class="btn btn-sm btn-danger" type="submit">Xóa</button>
+									<input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+										th:value="${_csrf.token}" />
+								</form>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mt-5 pt-4 border-top">
+
+				<div class="mb-4 mb-md-0 text-start">
+					<a th:href="@{/books}"
+						class="btn btn-outline-secondary px-4 fw-medium text-uppercase small tracking-wide rounded-pill">
+						<i class="fa fa-arrow-left me-2"></i>Tiếp tục mua sắm
+					</a>
+				</div>
+
+				<div class="text-end" style="min-width: 340px;">
+					<form class="text-start mb-5" id="couponForm">
+						<label for="couponInput" class="form-label">Coupon</label>
+						<div class="input-group">
+							<input type="text" class="form-control" id="couponInput" name="code"
+								placeholder="Nhập mã giảm giá" autocomplete="off" th:value="${couponCode}">
+							<button type="submit" class="btn btn-primary">Áp dụng</button>
+						</div>
+					</form>
+
+
+					<div class="d-flex justify-content-between align-items-center mb-2">
+						<span class="text-muted fw-medium">Tạm tính:</span>
+						<span class="fw-semibold text-dark" id="subtotal"
+							th:insert="~{books/components/price :: price(price=${subtotal}, quantity=1, currency='VND')}"></span>
+					</div>
+
+					<div class="d-flex justify-content-between align-items-center mb-3">
+						<span class="text-muted fw-medium d-flex align-items-center">
+							VAT:
+							<i class="fa fa-circle-info ms-2 text-primary opacity-50" data-bs-toggle="tooltip"
+								data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+								title="VAT theo nhóm nội dung sách: 0% (giáo trình/chính trị/pháp luật/khoa học-kỹ thuật...) hoặc 5%."></i>
+						</span>
+						<span class="fw-semibold text-dark" id="tax"
+							th:insert="~{books/components/price :: price(price=${tax}, quantity=1, currency='VND')}"></span>
+					</div>
+
+					<div class="d-flex justify-content-between align-items-center pt-3 border-top mb-4">
+						<span class="fs-5 fw-bold text-dark">Tổng thanh toán:</span>
+						<span class="fs-3 fw-black text-primary fw-bold" id="total"
+							th:insert="~{books/components/price :: price(price=${total}, quantity=1, currency='VND')}"></span>
+					</div>
+
+					<a class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-3 py-3 tracking-wide"
+						th:href="@{/checkout}">
+						Đến trang checkout <i class="fa fa-arrow-right ms-2"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+
+		<div th:if="${cart == null or cart.isEmpty()}" class="text-center py-5">
+			<p class="fs-4">Giỏ hàng của bạn đang trống</p>
+			<a th:href="@{/books}" class="btn btn-outline-primary">Bắt đầu mua sắm</a>
+		</div>
+	</main>
+
+	<th:block th:replace="~{layout::footer}"></th:block>
+
+	<script>
+		$(document).on('submit', '#couponForm', async function (e) {
+			e.preventDefault();
+			const form = $(this);
+			let code = $('#couponInput').val().trim();
+			if (!code) {
+				alert('Vui lòng nhập mã giảm giá.');
+				return;
+			}
+
+			try {
+				const csrfToken = form.find('input[name="_csrf"]').val();
+				const headers = {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				};
+
+				if (csrfToken) {
+					headers['X-CSRF-TOKEN'] = csrfToken;
+				}
+
+				const response = await fetch('/coupons/apply-coupon', {
+					method: 'POST',
+					headers: headers,
+					body: new URLSearchParams({ code: code })
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					if (data.success) {
+						const toUpdate = [
+							$('#subtotal .price').attr('data-price-value', data.subtotal)[0],
+							$('#tax .price').attr('data-price-value', data.tax)[0],
+							$('#total .price').attr('data-price-value', data.total)[0]
+						];
+
+						toUpdate.forEach(el => { if (el) applyPriceFormatting(el); });
+						form.find('button[type="submit"]').prop('disabled', true).text('Đã áp dụng');
+						alert(data.message || 'Áp dụng mã giảm giá thành công.');
+					} else {
+						alert(data.message || 'Áp dụng coupon thất bại.');
+					}
+				} else {
+					const err = await response.json();
+					alert(err.message || 'Áp dụng coupon thất bại. Vui lòng thử lại.');
+				}
+			} catch (error) {
+				console.error('Error applying coupon:', error);
+				alert('Đã xảy ra lỗi khi áp dụng mã giảm giá. Vui lòng thử lại.');
+			}
+		});
+
+		$(document).on('change', '.quantity-input', async function () {
+			let form = $(this).closest('form');
+			let qty = parseInt($(this).val());
+			let sku = form.find('input[name="sku"]').val();
+			let bookId = form.find('input[name="bookId"]').val();
+			let csrf = form.find('input[name="_csrf"]').val();
+
+			try {
+				const response = await fetch('/cart/update', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+						'X-CSRF-TOKEN': form.find('input[name="_csrf"]').val()
+					},
+					body: new URLSearchParams({
+						bookId: bookId,
+						sku: sku,
+						qty: qty
+					})
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					$(this).val(data.qty);
+					// Cập nhật subtotal, tax, total trên trang
+					const toUpdate = [
+						$('#subtotal .price').attr('data-price-value', data.subtotal)[0],
+						$('#tax .price').attr('data-price-value', data.tax)[0],
+						$('#total .price').attr('data-price-value', data.total)[0],
+						form.closest('tr').find('td.text-end .price').attr({
+							'data-price-value': data.lineTotal,
+							'data-price-quantity': data.qty
+						})[0]
+					];
+					toUpdate.forEach(el => { if (el) applyPriceFormatting(el); });
+				} else {
+					const err = await response.json();
+					alert(err.message || 'Cập nhật số lượng thất bại. Vui lòng thử lại.');
+				}
+			} catch (error) {
+				console.error('Error updating cart:', error);
+				alert('Đã xảy ra lỗi khi cập nhật giỏ hàng. Vui lòng thử lại.');
+			}
+		});
+	</script>
+</body>
+
+</html>

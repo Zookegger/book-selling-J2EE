@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${pageTitle} + ' - LuminaBook'">Quản lý sách</title>
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+    <style>
+        .section-header {
+            border-left: 4px solid #0d6efd;
+            padding-left: 0.75rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .format-row {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #dee2e6;
+        }
+
+        .format-row:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+        }
+
+        .image-preview-box {
+            height: 250px;
+            border: 2px dashed #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+
+        .image-preview-box img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-xl flex-grow-1 py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a th:href="@{/books}" class="text-decoration-none"><i
+                                class="fa fa-arrow-left me-1"></i> Sách</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="${pageTitle}">Quản lý sách</li>
+                </ol>
+            </nav>
+        </div>
+
+        <form th:action="${book != null} ? @{/books/{slug}/edit(slug=${book.slug})} : @{/books/new}"
+            th:object="${bookRequest}" method="post" enctype="multipart/form-data" id="bookForm">
+
+            <div th:if="${errorMessage}" class="alert alert-danger shadow-sm border-0" th:text="${errorMessage}"></div>
+            <div th:if="${successMessage}" class="alert alert-success shadow-sm border-0" th:text="${successMessage}">
+            </div>
+            <div class="alert alert-warning shadow-sm border-0" th:if="${#fields.hasErrors('formats')}">
+                <i class="fa fa-exclamation-triangle me-2"></i> Dữ liệu định dạng sách không hợp lệ, vui lòng kiểm tra
+                lại.
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body p-4">
+                            <h4 class="section-header h5">Thông tin cơ bản</h4>
+
+                            <div class="mb-3">
+                                <label for="title" class="form-label fw-bold">Tiêu đề <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" th:field="*{title}" id="title" class="form-control form-control-lg"
+                                    placeholder="Ví dụ: Clean Code" required />
+                                <div class="text-danger mt-1 small" th:errors="*{title}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="subtitle" class="form-label fw-bold text-muted">Phụ đề</label>
+                                <input type="text" th:field="*{subtitle}" id="subtitle" class="form-control"
+                                    placeholder="A Handbook of Agile Software Craftsmanship" />
+                                <div class="text-danger mt-1 small" th:errors="*{subtitle}"></div>
+                            </div>
+
+                            <div class="mb-0">
+                                <label for="description" class="form-label fw-bold">Mô tả nội dung <span
+                                        class="text-danger">*</span></label>
+                                <textarea th:field="*{description}" id="description" class="form-control" rows="6"
+                                    placeholder="Nhập tóm tắt nội dung cuốn sách..." required></textarea>
+                                <div class="text-danger mt-1 small" th:errors="*{description}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="section-header h5 mb-0">Phiên bản & Định dạng</h4>
+                                <button type="button" id="addFormatRow" class="btn btn-sm btn-outline-primary fw-bold">
+                                    <i class="fa fa-plus me-1"></i> Thêm định dạng
+                                </button>
+                            </div>
+
+                            <div id="formatRows" class="d-flex flex-column gap-4">
+                                <div class="p-3 bg-white rounded-3 format-row position-relative"
+                                    th:each="format, iterStat : *{formats}">
+
+                                    <div
+                                        class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                                        <span class="badge bg-primary format-title"
+                                            th:text="|Định dạng #${iterStat.index + 1}|">#1</span>
+                                        <button type="button"
+                                            class="btn btn-sm btn-link text-danger text-decoration-none remove-format-row p-0">
+                                            <i class="fa fa-trash"></i> Xóa
+                                        </button>
+                                    </div>
+
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold small">Loại</label>
+                                            <select class="form-select form-select-sm"
+                                                th:name="|formats[${iterStat.index}].formatType|"
+                                                th:value="${format.formatType}">
+                                                <option value="">Chọn...</option>
+                                                <option th:each="type : ${formatTypes}" th:value="${type}"
+                                                    th:selected="${format.formatType == type}"
+                                                    th:text="${#strings.capitalize(#strings.toLowerCase(type))}">
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold small">SKU</label>
+                                            <input type="text" class="form-control form-control-sm text-uppercase"
+                                                th:name="|formats[${iterStat.index}].sku|" th:value="${format.sku}"
+                                                placeholder="BK-001">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold small">ISBN</label>
+                                            <input type="text" class="form-control form-control-sm"
+                                                th:name="|formats[${iterStat.index}].isbn|" th:value="${format.isbn}"
+                                                placeholder="Mã vạch">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold small">Ngày phát hành</label>
+                                            <input type="date" class="form-control form-control-sm"
+                                                th:name="|formats[${iterStat.index}].releaseDate|"
+                                                th:value="${format.releaseDate}">
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold small">Giá gốc (<span
+                                                    class="text-muted"
+                                                    th:text="${format.currency ?: 'VND'}"></span>)</label>
+                                            <input type="number" class="form-control form-control-sm" step="0.01"
+                                                min="0" th:name="|formats[${iterStat.index}].price|"
+                                                th:value="${format.price}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold small text-success">Giá KM</label>
+                                            <input type="number" class="form-control form-control-sm" step="0.01"
+                                                min="0" th:name="|formats[${iterStat.index}].discountedPrice|"
+                                                th:value="${format.discountedPrice}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold small">Tồn kho / Lượt tải</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" class="form-control" min="0"
+                                                    th:name="|formats[${iterStat.index}].stockQuantity|"
+                                                    th:value="${format.stockQuantity}" placeholder="Kho">
+                                                <input type="number" class="form-control" min="1"
+                                                    th:name="|formats[${iterStat.index}].downloadLimit|"
+                                                    th:value="${format.downloadLimit}" placeholder="Max DL"
+                                                    th:disabled="${#strings.toString(format.formatType) == 'PHYSICAL'}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold small">Tiền tệ</label>
+                                            <input type="text" class="form-control form-control-sm text-uppercase"
+                                                th:name="|formats[${iterStat.index}].currency|"
+                                                th:value="${format.currency}" placeholder="VND">
+                                        </div>
+
+                                        <div class="col-md-8">
+                                            <label class="form-label fw-semibold small">File kỹ thuật số</label>
+                                            <div class="input-group input-group-sm">
+                                                <select class="form-select"
+                                                    th:name="|formats[${iterStat.index}].fileFormat|"
+                                                    style="max-width: 120px;">
+                                                    <option value="">Loại file...</option>
+                                                    <option th:each="fileFormat : ${fileFormats}"
+                                                        th:value="${fileFormat}"
+                                                        th:selected="${format.fileFormat == fileFormat}"
+                                                        th:text="${fileFormat}"></option>
+                                                </select>
+                                                <input type="file" class="form-control" name="formatFiles"
+                                                    accept=".pdf,.epub,.mobi,.mp3,.m4a,.aac,.wav,.flac">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-end pb-1">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                    th:name="|formats[${iterStat.index}].active|"
+                                                    th:checked="${format.active}" value="true"
+                                                    th:id="|active-${iterStat.index}|">
+                                                <label class="form-check-label small fw-bold text-success"
+                                                    th:for="|active-${iterStat.index}|">Đang mở bán</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body p-4">
+                            <h4 class="section-header h5">Ảnh bìa</h4>
+
+                            <div class="image-preview-box rounded-3 mb-3" id="previewContainer">
+                                <img id="coverPreview"
+                                    th:src="${book != null and book.coverImage != null} ? ${book.coverImage} : ''"
+                                    th:style="${book == null or book.coverImage == null} ? 'display:none;' : ''"
+                                    alt="Cover Preview">
+                                <div id="noPreviewText" class="text-center text-muted"
+                                    th:style="${book != null and book.coverImage != null} ? 'display:none;' : ''">
+                                    <i class="fa fa-image fa-3x mb-2 text-secondary opacity-50"></i>
+                                    <p class="small mb-0">Chưa có ảnh bìa</p>
+                                </div>
+                            </div>
+
+                            <input type="file" name="coverFile" id="coverFile" class="form-control form-control-sm"
+                                accept="image/png, image/jpeg, image/jpg" />
+                            <input type="hidden" th:field="*{coverImage}" />
+                            <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">Tỷ lệ chuẩn 2:3. Kích
+                                thước tối đa 2MB.</small>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body p-4">
+                            <h4 class="section-header h5">Phân loại & Xuất bản</h4>
+
+                            <div class="mb-3">
+                                <label for="authorIds" class="form-label fw-semibold small">Tác giả</label>
+                                <select th:field="*{authorIds}" id="authorIds" class="form-select form-select-sm"
+                                    multiple size="3">
+                                    <option th:each="author : ${authors}" th:value="${author.id}"
+                                        th:text="${author.name}"></option>
+                                </select>
+                                <div class="text-danger mt-1 small" th:errors="*{authorIds}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="categoryIds" class="form-label fw-semibold small">Danh mục</label>
+                                <select th:field="*{categoryIds}" id="categoryIds" class="form-select form-select-sm"
+                                    multiple size="3">
+                                    <option th:each="category : ${categories}" th:value="${category.id}"
+                                        th:text="${category.name}"></option>
+                                </select>
+                                <div class="text-danger mt-1 small" th:errors="*{categoryIds}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="publisherId" class="form-label fw-semibold small">Nhà xuất bản</label>
+                                <select th:field="*{publisherId}" id="publisherId" class="form-select form-select-sm">
+                                    <option value="" disabled selected>Chọn...</option>
+                                    <option th:each="publisher : ${publishers}" th:value="${publisher.id}"
+                                        th:text="${publisher.name}"></option>
+                                </select>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label for="publicationDate" class="form-label fw-semibold small">Ngày xuất
+                                        bản</label>
+                                    <input type="date" th:field="*{publicationDate}" id="publicationDate"
+                                        class="form-control form-control-sm" required />
+                                </div>
+                                <div class="col-6">
+                                    <label for="language" class="form-label fw-semibold small">Ngôn ngữ</label>
+                                    <input type="text" th:field="*{language}" id="language"
+                                        class="form-control form-control-sm" placeholder="VD: vi, en" />
+                                </div>
+                                <div class="col-6">
+                                    <label for="pageCount" class="form-label fw-semibold small">Số trang</label>
+                                    <input type="number" th:field="*{pageCount}" id="pageCount"
+                                        class="form-control form-control-sm" min="1" />
+                                </div>
+                                <div class="col-6">
+                                    <label for="isbn" class="form-label fw-semibold small">ISBN Chung</label>
+                                    <input type="text" th:field="*{isbn}" id="isbn" class="form-control form-control-sm"
+                                        placeholder="Mã vạch gốc" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-primary border-2 border-top-0 border-end-0 border-bottom-0 position-sticky"
+                        style="top: 1.5rem; z-index: 10;">
+                        <div class="card-body p-4 d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa fa-save me-2"></i> Lưu Sách
+                            </button>
+                            <a class="btn btn-light fw-semibold" th:href="@{/books}">
+                                Hủy thay đổi
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <template id="formatRowTemplate">
+            <div class="p-3 bg-white rounded-3 format-row position-relative">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <span class="badge bg-primary format-title">Định dạng</span>
+                    <button type="button"
+                        class="btn btn-sm btn-link text-danger text-decoration-none remove-format-row p-0">
+                        <i class="fa fa-trash"></i> Xóa
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small">Loại</label>
+                        <select class="form-select form-select-sm" name="formats[__index__].formatType">
+                            <option value="">Chọn...</option>
+                            <option th:each="type : ${formatTypes}" th:value="${type}" th:text="${type}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small">SKU</label>
+                        <input type="text" class="form-control form-control-sm text-uppercase"
+                            name="formats[__index__].sku" placeholder="BK-001">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small">ISBN</label>
+                        <input type="text" class="form-control form-control-sm" name="formats[__index__].isbn"
+                            placeholder="Mã vạch">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small">Ngày phát hành</label>
+                        <input type="date" class="form-control form-control-sm" name="formats[__index__].releaseDate">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small">Giá gốc</label>
+                        <input type="number" class="form-control form-control-sm" name="formats[__index__].price"
+                            step="0.01" min="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-success">Giá KM</label>
+                        <input type="number" class="form-control form-control-sm"
+                            name="formats[__index__].discountedPrice" step="0.01" min="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small">Tồn kho / Lượt tải</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" class="form-control" name="formats[__index__].stockQuantity" min="0"
+                                placeholder="Kho">
+                            <input type="number" class="form-control" name="formats[__index__].downloadLimit" min="1"
+                                placeholder="Max DL">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small">Tiền tệ</label>
+                        <input type="text" class="form-control form-control-sm text-uppercase"
+                            name="formats[__index__].currency" value="VND" placeholder="VND">
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold small">File kỹ thuật số</label>
+                        <div class="input-group input-group-sm">
+                            <select class="form-select" name="formats[__index__].fileFormat" style="max-width: 120px;">
+                                <option value="">Loại file...</option>
+                                <option th:each="fileFormat : ${fileFormats}" th:value="${fileFormat}"
+                                    th:text="${fileFormat}"></option>
+                            </select>
+                            <input type="file" class="form-control" name="formatFiles"
+                                accept=".pdf,.epub,.mobi,.mp3,.m4a,.aac,.wav,.flac">
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end pb-1">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                name="formats[__index__].active" value="true" id="active-__index__" checked>
+                            <label class="form-check-label small fw-bold text-success" for="active-__index__">Đang mở
+                                bán</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. Single Select with Search for Publishers
+            const publisherEl = document.getElementById('publisherId');
+            if (publisherEl) {
+                new Choices(publisherEl, {
+                    searchEnabled: true,
+                    itemSelectText: '', // Kills the annoying default "Press to select" text
+                    placeholder: true,
+                    placeholderValue: 'Tìm kiếm nhà xuất bản...',
+                    shouldSort: false // Keeps your backend sorting order intact
+                });
+            }
+
+            // 2. Multiple Select with Tags for Authors
+            const authorEl = document.getElementById('authorIds');
+            if (authorEl) {
+                new Choices(authorEl, {
+                    removeItemButton: true,
+                    searchEnabled: true,
+                    placeholderValue: 'Chọn tác giả...',
+                    searchPlaceholderValue: 'Gõ để tìm kiếm tác giả...',
+                    shouldSort: false
+                });
+            }
+
+            // 3. Multiple Select with Tags for Categories
+            const categoryEl = document.getElementById('categoryIds');
+            if (categoryEl) {
+                new Choices(categoryEl, {
+                    removeItemButton: true,
+                    searchEnabled: true,
+                    placeholderValue: 'Chọn danh mục...',
+                    searchPlaceholderValue: 'Gõ để tìm kiếm danh mục...',
+                    shouldSort: false
+                });
+            }
+        });
+
+        (() => {
+            // 1. Dynamic Format Rows Logic
+            const rowsContainer = document.getElementById('formatRows');
+            const template = document.getElementById('formatRowTemplate');
+            const addButton = document.getElementById('addFormatRow');
+            const form = document.getElementById('bookForm');
+
+            const updateTitles = () => {
+                rowsContainer.querySelectorAll('.format-row').forEach((row, index) => {
+                    const title = row.querySelector('.format-title');
+                    if (title) title.textContent = `Định dạng #${index + 1}`;
+                });
+            };
+
+            const reindexRows = () => {
+                rowsContainer.querySelectorAll('.format-row').forEach((row, index) => {
+                    row.querySelectorAll('[name]').forEach(input => {
+                        input.name = input.name.replace(/formats\[\d+\]/g, `formats[${index}]`);
+                        input.name = input.name.replace(/formats\[__index__\]/g, `formats[${index}]`);
+                    });
+                    row.querySelectorAll('[id]').forEach(el => {
+                        el.id = el.id.replace(/active-\d+/g, `active-${index}`)
+                            .replace(/active-__index__/g, `active-${index}`);
+                    });
+                    row.querySelectorAll('label[for]').forEach(label => {
+                        label.htmlFor = label.htmlFor.replace(/active-\d+/g, `active-${index}`)
+                            .replace(/active-__index__/g, `active-${index}`);
+                    });
+                });
+                updateTitles();
+            };
+
+            if (addButton && template && rowsContainer) {
+                addButton.addEventListener('click', () => {
+                    const currentCount = rowsContainer.querySelectorAll('.format-row').length;
+                    const html = template.innerHTML.replace(/__index__/g, String(currentCount));
+                    rowsContainer.insertAdjacentHTML('beforeend', html);
+                    reindexRows();
+                });
+
+                rowsContainer.addEventListener('click', e => {
+                    const removeBtn = e.target.closest('.remove-format-row');
+                    if (removeBtn) {
+                        removeBtn.closest('.format-row').remove();
+                        reindexRows();
+                    }
+                });
+            }
+
+            if (form) {
+                form.addEventListener('submit', () => reindexRows());
+            }
+
+            updateTitles();
+
+            const coverInput = document.getElementById('coverFile');
+            const coverPreview = document.getElementById('coverPreview');
+            const noPreviewText = document.getElementById('noPreviewText');
+
+            if (coverInput) {
+                coverInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+                            coverPreview.src = event.target.result;
+                            coverPreview.style.display = 'block';
+                            noPreviewText.style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        if (coverPreview.getAttribute('src') === '') {
+                            coverPreview.style.display = 'none';
+                            noPreviewText.style.display = 'block';
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

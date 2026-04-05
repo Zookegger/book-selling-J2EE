@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{admin/dashboard :: pageHead('Báo cáo doanh thu')}" />
+</head>
+
+<body>
+    <th:block th:replace="~{admin/dashboard :: layout('Báo cáo doanh thu', 'reports', ~{::mainContent}, ~{::pageScripts})}">
+
+        <th:block th:fragment="mainContent">
+            <div class="d-flex flex-column gap-4">
+                <section class="welcome-card card p-4 p-md-5">
+                    <div class="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3">
+                        <div>
+                            <p class="text-uppercase small fw-semibold text-primary mb-2">Báo cáo quản trị</p>
+                            <h2 class="h3 fw-bold mb-2">Thống kê doanh thu và hiệu suất bán hàng</h2>
+                            <p class="text-muted mb-0">
+                                Phân tích số lượng sách theo thể loại, theo dõi tồn kho, nhận diện sách bán chạy/kém chạy
+                                và quan sát doanh thu theo ngày, tuần, tháng.
+                            </p>
+                        </div>
+                        <form method="get" th:action="@{/admin/reports}" class="row g-2 align-items-end report-filter-form">
+                            <div class="col-12 col-md-auto">
+                                <label class="form-label mb-1">Từ ngày</label>
+                                <input class="form-control" type="date" name="from" th:value="${report.fromDate}">
+                            </div>
+                            <div class="col-12 col-md-auto">
+                                <label class="form-label mb-1">Đến ngày</label>
+                                <input class="form-control" type="date" name="to" th:value="${report.toDate}">
+                            </div>
+                            <div class="col-12 col-md-auto">
+                                <button class="btn btn-dark px-4" type="submit">
+                                    <i class="bi bi-funnel me-1"></i> Lọc báo cáo
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="row g-3">
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <article class="card stat-card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <p class="small text-uppercase fw-semibold text-secondary mb-2">Doanh thu hoàn tất</p>
+                                <p class="display-6 fw-bold mb-0"
+                                    th:text="${#numbers.formatDecimal(report.summary.totalRevenue, 1, 'COMMA', 0, 'POINT')} + ' VND'">
+                                    0 VND
+                                </p>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <article class="card stat-card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <p class="small text-uppercase fw-semibold text-secondary mb-2">Đơn hoàn tất</p>
+                                <p class="display-6 fw-bold mb-0" th:text="${report.summary.completedOrderCount}">0</p>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <article class="card stat-card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <p class="small text-uppercase fw-semibold text-secondary mb-2">Sách đã bán</p>
+                                <p class="display-6 fw-bold mb-0" th:text="${report.summary.totalItemsSold}">0</p>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <article class="card stat-card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <p class="small text-uppercase fw-semibold text-secondary mb-2">Tồn kho cảnh báo</p>
+                                <p class="display-6 fw-bold mb-0" th:text="${report.summary.lowStockCount + report.summary.outOfStockCount}">0</p>
+                                <p class="text-muted small mb-0 mt-2"
+                                    th:text="'Hết hàng: ' + ${report.summary.outOfStockCount} + ' | Sắp hết: ' + ${report.summary.lowStockCount}">
+                                    Hết hàng: 0 | Sắp hết: 0
+                                </p>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="row g-3">
+                    <div class="col-12 col-xl-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-0 pt-3 pb-0">
+                                <h3 class="h5 fw-bold mb-0">Số lượng sách bán theo thể loại</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Thể loại</th>
+                                                <th class="text-end">Số lượng bán</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${#lists.isEmpty(report.categorySales)}">
+                                                <td colspan="2" class="text-center text-muted py-4">Chưa có dữ liệu bán hàng trong khoảng thời gian này.</td>
+                                            </tr>
+                                            <tr th:each="row : ${report.categorySales}">
+                                                <td th:text="${row.categoryName}">Tiểu thuyết</td>
+                                                <td class="text-end fw-semibold" th:text="${row.quantitySold}">0</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-xl-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-0 pt-3 pb-0">
+                                <h3 class="h5 fw-bold mb-0">Doanh thu theo ngày</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Ngày</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${#lists.isEmpty(report.dailyRevenue)}">
+                                                <td colspan="2" class="text-center text-muted py-4">Không có doanh thu trong khoảng thời gian này.</td>
+                                            </tr>
+                                            <tr th:each="point : ${report.dailyRevenue}">
+                                                <td th:text="${point.label}">05/04/2026</td>
+                                                <td class="text-end fw-semibold"
+                                                    th:text="${#numbers.formatDecimal(point.revenue, 1, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="row g-3">
+                    <div class="col-12 col-xl-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-0 pt-3 pb-0">
+                                <h3 class="h5 fw-bold mb-0">Sách bán chạy nhất</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên sách</th>
+                                                <th class="text-end">Số lượng</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${#lists.isEmpty(report.bestSellers)}">
+                                                <td colspan="3" class="text-center text-muted py-4">Chưa có dữ liệu.</td>
+                                            </tr>
+                                            <tr th:each="row : ${report.bestSellers}">
+                                                <td class="fw-semibold" th:text="${row.bookTitle}">Tên sách</td>
+                                                <td class="text-end" th:text="${row.quantitySold}">0</td>
+                                                <td class="text-end"
+                                                    th:text="${#numbers.formatDecimal(row.revenue, 1, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-xl-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-0 pt-3 pb-0">
+                                <h3 class="h5 fw-bold mb-0">Sách bán kém nhất</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên sách</th>
+                                                <th class="text-end">Số lượng</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${#lists.isEmpty(report.lowSellers)}">
+                                                <td colspan="3" class="text-center text-muted py-4">Chưa có dữ liệu.</td>
+                                            </tr>
+                                            <tr th:each="row : ${report.lowSellers}">
+                                                <td class="fw-semibold" th:text="${row.bookTitle}">Tên sách</td>
+                                                <td class="text-end" th:text="${row.quantitySold}">0</td>
+                                                <td class="text-end"
+                                                    th:text="${#numbers.formatDecimal(row.revenue, 1, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="row g-3">
+                    <div class="col-12 col-xl-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-0 pt-3 pb-0">
+                                <h3 class="h5 fw-bold mb-0">Doanh thu theo tuần</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tuần</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${#lists.isEmpty(report.weeklyRevenue)}">
+                                                <td colspan="2" class="text-center text-muted py-4">Không có dữ liệu.</td>
+                                            </tr>
+                                            <tr th:each="point : ${report.weeklyRevenue}">
+                                                <td th:text="${point.label}">31/03/2026 - 06/04/2026</td>
+                                                <td class="text-end fw-semibold"
+                                                    th:text="${#numbers.formatDecimal(point.revenue, 1, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-xl-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-0 pt-3 pb-0">
+                                <h3 class="h5 fw-bold mb-0">Doanh thu theo tháng</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Tháng</th>
+                                                <th class="text-end">Doanh thu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${#lists.isEmpty(report.monthlyRevenue)}">
+                                                <td colspan="2" class="text-center text-muted py-4">Không có dữ liệu.</td>
+                                            </tr>
+                                            <tr th:each="point : ${report.monthlyRevenue}">
+                                                <td th:text="${point.label}">04/2026</td>
+                                                <td class="text-end fw-semibold"
+                                                    th:text="${#numbers.formatDecimal(point.revenue, 1, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 pt-3 pb-0">
+                        <h3 class="h5 fw-bold mb-0">Theo dõi hàng tồn kho</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Tên sách</th>
+                                        <th class="text-end">Số lượng tồn (bản vật lý)</th>
+                                        <th class="text-end">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${#lists.isEmpty(report.inventory)}">
+                                        <td colspan="3" class="text-center text-muted py-4">Chưa có dữ liệu tồn kho.</td>
+                                    </tr>
+                                    <tr th:each="row : ${report.inventory}">
+                                        <td class="fw-semibold" th:text="${row.bookTitle}">Tên sách</td>
+                                        <td class="text-end" th:text="${row.stockQuantity}">0</td>
+                                        <td class="text-end">
+                                            <span class="badge"
+                                                th:classappend="${row.inventoryStatus == 'Hết hàng'} ? ' bg-danger-subtle text-danger-emphasis' : (${row.inventoryStatus == 'Sắp hết'} ? ' bg-warning-subtle text-warning-emphasis' : (${row.inventoryStatus == 'Không áp dụng'} ? ' bg-secondary-subtle text-secondary-emphasis' : ' bg-success-subtle text-success-emphasis'))"
+                                                th:text="${row.inventoryStatus}">Còn hàng</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </th:block>
+
+        <th:block th:fragment="pageScripts">
+            <style>
+                .stat-card {
+                    background: linear-gradient(145deg, #ffffff 0%, #f7f9ff 100%);
+                }
+
+                .report-filter-form {
+                    max-width: 100%;
+                }
+
+                .card .table th {
+                    font-size: 0.86rem;
+                    text-transform: uppercase;
+                    color: #6c757d;
+                    letter-spacing: 0.04em;
+                }
+            </style>
+        </th:block>
+
+    </th:block>
+</body>
+
+</html>
