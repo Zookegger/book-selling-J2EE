@@ -44,7 +44,7 @@ public class CouponService {
     public Coupon applyCoupon(String code, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
-                "Không tìm thay người dùng với ID: " + userId));
+                "Không tìm thấy người dùng với ID: " + userId));
 
         Coupon validCoupon = couponRepository.findValidCoupon(code).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(
