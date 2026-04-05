@@ -1,5 +1,6 @@
 package com.group.book_selling.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Sort;
@@ -26,17 +27,32 @@ public class PublisherService {
     }
 
     @Transactional(readOnly = true)
+    public List<Publisher> findAllExceptId(Long id) {
+        return publisherRepository.findAll().stream()
+                .filter(publisher -> !publisher.getId().equals(id))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Publisher findBySlug(String slug) {
+        return publisherRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy nhà xuất bản với slug: " + slug));
+    }
+
+    @Transactional(readOnly = true)
     public Publisher findById(Long id) {
         return publisherRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay nha xuat ban"));
     }
 
+@Transactional
     public Publisher create(Publisher request) {
         request.setId(null);
         request.setSlug(SlugUtils.slugify(request.getName()));
         return publisherRepository.save(request);
     }
 
+    @Transactional
     public Publisher update(Long id, Publisher request) {
         Publisher existing = findById(id);
 
@@ -52,6 +68,7 @@ public class PublisherService {
         return publisherRepository.save(existing);
     }
 
+    @Transactional
     public void delete(Long id) {
         if (!publisherRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Khong tim thay nha xuat ban");

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}"></title>
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+</head>
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-md py-5" style="max-width: 850px;">
+        <div class="mb-4">
+            <a th:href="@{/publishers}" class="btn btn-sm btn-link text-decoration-none text-secondary p-0">
+                <i class="fa fa-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 pt-4 px-4 px-md-5">
+                <h2 class="fw-bold text-dark mb-0" th:text="${pageTitle}">Chi tiết Nhà xuất bản</h2>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form th:action="@{/publishers/save}" th:object="${publisher}" method="post">
+                    <input type="hidden" th:field="*{id}" />
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase">Tên nhà xuất bản <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{name}" class="form-control form-control-lg bg-light border-0" 
+                               placeholder="Nhập tên nhà xuất bản..." required>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Email liên hệ</label>
+                            <input type="email" th:field="*{contactEmail}" class="form-control border-0 bg-light" 
+                                   placeholder="Ví dụ: contact@kimdong.vn">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Website</label>
+                            <input type="text" th:field="*{website}" class="form-control border-0 bg-light" 
+                                   placeholder="Ví dụ: https://nxbkimdong.com.vn">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Địa chỉ trụ sở</label>
+                            <input type="text" th:field="*{location}" class="form-control border-0 bg-light" 
+                                   placeholder="Nhập địa chỉ nhà xuất bản...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Đường dẫn Logo (URL)</label>
+                            <input type="text" th:field="*{logo}" class="form-control border-0 bg-light" 
+                                   placeholder="Nhập link hình ảnh logo...">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6" th:if="*{id != null}">
+                            <label class="form-label fw-bold small text-uppercase">Đường dẫn (Slug)</label>
+                            <input type="text" th:field="*{slug}" class="form-control border-0 bg-light" readonly>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" th:field="*{active}" id="activeSwitch">
+                                <label class="form-check-label fw-bold small text-uppercase" for="activeSwitch">Trạng thái Hoạt động</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase">Mô tả giới thiệu</label>
+                        <textarea th:field="*{description}" class="form-control border-0 bg-light" rows="5" 
+                                  placeholder="Viết bài giới thiệu ngắn về nhà xuất bản này..."></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2 pt-3">
+                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold">
+                            <i class="fa fa-save me-2"></i> Lưu thay đổi
+                        </button>
+                        <a th:href="@{/publishers}" class="btn btn-light px-4 py-2">Hủy bỏ</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+</html>

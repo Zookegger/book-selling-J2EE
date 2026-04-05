@@ -65,6 +65,11 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
+    public List<Book> findBooksByPublisherSlug(String slug) {
+        return bookRepository.findByPublisherSlug(slug);
+    }
+
+    @Transactional(readOnly = true)
     public List<Suggestion> autocomplete(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return List.of();

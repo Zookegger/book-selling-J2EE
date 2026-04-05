@@ -65,7 +65,9 @@ public class SecurityConfig {
                                                                 "/categories",
                                                                 "/coupons",
                                                                 "/coupons/**",
-                                                                "/categories/**")
+                                                                "/categories/**",
+                                                                "/publishers",
+                                                                "/publishers/**")
                                                 .permitAll()
                                                 .requestMatchers("/user/**")
                                                 .hasAnyRole(UserRole.ADMIN.name(), UserRole.USER.name())
