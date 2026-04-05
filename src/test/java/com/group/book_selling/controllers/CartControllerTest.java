@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.group.book_selling.models.Cart;
 import com.group.book_selling.services.CartService;
+import com.group.book_selling.services.CouponService;
 
 @ExtendWith(MockitoExtension.class)
 public class CartControllerTest {
@@ -32,10 +33,12 @@ public class CartControllerTest {
 
 	@Mock
 	private CartService cartService;
+	@Mock
+	private CouponService couponService;
 
 	@BeforeEach
 	void setUp() {
-		CartController controller = new CartController(cartService);
+		CartController controller = new CartController(cartService, couponService);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 	}
 
@@ -65,7 +68,7 @@ public class CartControllerTest {
 				.param("qty", "2"))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/cart/view"))
-				.andExpect(flash().attribute("success", "Added to cart successfully!"));
+				.andExpect(flash().attribute("success", "Thêm vào giỏ hàng thành công."));
 
 		verify(cartService).addToCart(any(Cart.class), eq(1L), eq("SKU-001"), eq(2));
 		assertNotNull(session.getAttribute("cart"));

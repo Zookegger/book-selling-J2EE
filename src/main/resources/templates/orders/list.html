@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:replace="~{layout :: link-css}"></th:block>
+    <title>Đơn hàng của tôi</title>
+</head>
+
+<body>
+    <th:block th:replace="~{layout::header}"></th:block>
+
+    <main class="container-xl my-4 flex-grow-1">
+        <h1 class="mb-4">Đơn hàng của tôi</h1>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <div th:if="${orders == null or orders.isEmpty()}" class="text-center py-5 bg-light rounded">
+            <p class="fs-5 mb-3">Bạn chưa có đơn hàng nào.</p>
+            <a th:href="@{/books}" class="btn btn-primary">Mua sách ngay</a>
+        </div>
+
+        <div th:if="${orders != null and !orders.isEmpty()}" class="table-responsive">
+            <table class="table align-middle table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Ngày đặt</th>
+                        <th>Trạng thái</th>
+                        <th>Thanh toán</th>
+                        <th class="text-end">Tổng tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${orders}" th:onclick="|window.location='@{/orders/{id}(id=${order.id})}'|"
+                        style="cursor: pointer;">
+                        <td th:text="${order.orderNumber}"></td>
+                        <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <span class="badge bg-success" th:text="${order.orderStatus}"></span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary"
+                                th:text="${order.payment != null ? order.payment.paymentStatus : 'N/A'}"></span>
+                        </td>
+                        <td class="text-end"
+                            th:insert="~{books/components/price :: price(price=${order.grandTotal}, quantity=1, currency=${order.currency})}">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <th:block th:replace="~{layout::footer}"></th:block>
+</body>
+
+</html>
