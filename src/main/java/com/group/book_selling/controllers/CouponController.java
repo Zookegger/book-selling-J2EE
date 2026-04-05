@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -22,14 +21,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/coupons")
 @RequiredArgsConstructor
 public class CouponController {
 
     private final CouponService couponService;
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
+    @GetMapping("/admin/coupons")
     public String list(Model model) {
         model.addAttribute("coupons", couponService.list());
         model.addAttribute("coupon", new Coupon());
@@ -37,13 +35,13 @@ public class CouponController {
     }
 
     @ResponseBody
-    @GetMapping("/valid")
+    @GetMapping("/coupons/valid")
     public ResponseEntity<List<Coupon>> listValidCoupons(Model model) {
         return ResponseEntity.ok(couponService.findValidCoupons());
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/create")
+    @GetMapping("/admin/coupons/create")
     public String createForm(Model model) {
         model.addAttribute("coupons", couponService.list());
         model.addAttribute("coupon", new Coupon());
@@ -52,14 +50,14 @@ public class CouponController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/create")
+    @PostMapping("/admin/coupons/create")
     public String create(@Valid @ModelAttribute Coupon request) {
         couponService.create(request);
         return "redirect:/coupons";
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{id}/edit")
+    @GetMapping("/admin/coupons/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         model.addAttribute("coupons", couponService.list());
         model.addAttribute("coupon", couponService.findById(id));
@@ -68,34 +66,34 @@ public class CouponController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{id}/edit")
+    @PostMapping("/admin/coupons/{id}/edit")
     public String update(@PathVariable Long id, @Valid @ModelAttribute Coupon request) {
         couponService.update(id, request);
         return "redirect:/coupons";
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{id}/delete")
+    @PostMapping("/admin/coupons/{id}/delete")
     public String delete(@PathVariable Long id) {
         couponService.delete(id);
         return "redirect:/coupons";
     }
 
-    @GetMapping("/usages")
+    @GetMapping("/coupons/usages")
     public String showUsages(@RequestParam Long userId, Model model) {
         List<CouponUsage> usages = couponService.showUsages(userId);
         model.addAttribute("usages", usages);
         return "coupons/usages";
     }
 
-    @GetMapping("/{couponId}/usages")
+    @GetMapping("/coupons/{couponId}/usages")
     public String showUsage(@PathVariable Long couponId, @RequestParam Long userId, Model model) {
         CouponUsage usage = couponService.showUsage(userId, couponId);
         model.addAttribute("usage", usage);
         return "coupons/usage";
     }
 
-    @PostMapping("/apply")
+    @PostMapping("/coupons/apply")
     @ResponseBody
     public ResponseEntity<Coupon> apply(@RequestParam String code, @RequestParam Long userId) {
         return ResponseEntity.ok(couponService.applyCoupon(code, userId));
