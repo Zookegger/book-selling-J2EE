@@ -24,8 +24,10 @@
             </div>
             
             <div class="card-body p-4 p-md-5">
-                <form th:action="@{/publishers/save}" th:object="${publisher}" method="post">
+                <form th:action="@{/publishers/save}" th:object="${publisher}" method="post" enctype="multipart/form-data">
                     <input type="hidden" th:field="*{id}" />
+                    
+                    <input type="hidden" th:field="*{logo}" />
 
                     <div class="mb-4">
                         <label class="form-label fw-bold text-uppercase small text-muted">Tên nhà xuất bản <span class="text-danger">*</span></label>
@@ -47,10 +49,19 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-uppercase small text-muted">Đường dẫn Logo (URL)</label>
-                        <input type="text" th:field="*{logo}" class="form-control border-0 bg-light" 
-                               placeholder="/images/publishers/logo.png">
+                    <div class="mb-4 p-3 border rounded-3 bg-light">
+                        <label class="form-label fw-bold text-uppercase small text-muted mb-3">Tải lên Ảnh Logo</label>
+                        <div class="d-flex align-items-center gap-4">
+                            <div class="bg-white border rounded p-2 text-center" style="width: 120px; height: 120px;">
+                                <img id="thumbnail" alt="Logo Preview" class="img-fluid" style="max-height: 100%;"
+                                     th:src="*{logo != null and !logo.isEmpty() ? logo : '/images/default-publisher.png'}">
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="file" name="logoFile" id="fileImage" accept="image/png, image/jpeg, image/jpg, image/webp"
+                                       class="form-control border-0 bg-white shadow-sm mb-2">
+                                <small class="text-muted">Hỗ trợ file định dạng: JPG, PNG, WEBP. Kích thước tối đa 5MB.</small>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="p-3 mb-4 rounded-3 border bg-light bg-opacity-50">
@@ -104,5 +115,18 @@
     </main>
 
     <th:block th:replace="~{layout::footer}"></th:block>
+
+    <script>
+        document.getElementById('fileImage').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('thumbnail').setAttribute('src', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 </body>
 </html>

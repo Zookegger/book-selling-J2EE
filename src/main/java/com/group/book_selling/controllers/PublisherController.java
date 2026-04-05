@@ -1,16 +1,24 @@
 package com.group.book_selling.controllers;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.group.book_selling.models.Book;
@@ -84,7 +92,39 @@ public class PublisherController {
     /** Lưu dữ liệu (Dùng cho cả Create và Update). */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/save")
-    public String save(@ModelAttribute Publisher publisher, RedirectAttributes ra) {
+    public String save(@ModelAttribute Publisher publisher, 
+                       @RequestParam(value = "logoFile", required = false) MultipartFile multipartFile, 
+                       RedirectAttributes ra) throws IOException {
+        
+        if (multipartFile != null && !multipartFile.isEmpty()) {
+            
+            String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
+            String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
+
+            String uploadDir = "uploads/publishers";
+            Path uploadPath = Paths.get(uploadDir);
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            try {
+                Path filePath = uploadPath.resolve(uniqueFileName);
+                Files.copy(multipartFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                
+                publisher.setLogo("/uploads/publishers/" + uniqueFileName);
+                
+            } catch (IOException e) {
+                ra.addFlashAttribute("errorMessage", "Không thể lưu ảnh: " + e.getMessage());
+                return "redirect:/publishers";
+            }
+        } else {
+            if (publisher.getId() != null) {
+                Publisher existingPublisher = publisherService.findById(publisher.getId());
+                publisher.setLogo(existingPublisher.getLogo());
+            }
+        }
+
         if (publisher.getId() == null) {
             publisherService.create(publisher);
             ra.addFlashAttribute("successMessage", "Đã thêm nhà xuất bản thành công!");
@@ -93,7 +133,7 @@ public class PublisherController {
             ra.addFlashAttribute("successMessage", "Đã cập nhật nhà xuất bản thành công!");
         }
         
-        return "redirect:/publishers"; // Đã thêm chữ "s"
+        return "redirect:/publishers"; 
     }
 
     /** Xóa nhà xuất bản. */
@@ -102,6 +142,6 @@ public class PublisherController {
     public String delete(@PathVariable Long id, RedirectAttributes ra) {
         publisherService.delete(id);
         ra.addFlashAttribute("successMessage", "Đã xóa nhà xuất bản.");
-        return "redirect:/publishers"; // Đã thêm chữ "s"
+        return "redirect:/publishers"; 
     }
 }
