@@ -80,7 +80,7 @@ public class SecurityConfig {
                                                 .clearAuthentication(true).permitAll())
                                 .formLogin(form -> form.loginPage("/login")
                                                 .loginProcessingUrl("/login")
-                                                .defaultSuccessUrl("/")
+                                                .defaultSuccessUrl("/", true)
                                                 .failureHandler(failureHandler)
                                                 .permitAll())
                                 .rememberMe(rememberMe -> rememberMe.key("uniqueAndSecret").tokenValiditySeconds(86400)

@@ -24,7 +24,7 @@
                 <div class="bg-light d-flex align-items-center justify-content-center position-relative"
                     style="height: 220px; overflow: hidden; border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;">
                     <img th:if="${book.coverImage != null and !book.coverImage.isBlank()}" th:src="${book.coverImage}"
-                        class="img-fluid h-100 w-100 object-fit-cover" alt="Ảnh bìa sách" />
+                        class="img-fluid h-100 w-100 object-fit-contain" alt="Ảnh bìa sách" />
                     <div class="position-absolute top-0 end-0 p-2 d-flex flex-column gap-2 align-items-end z-2">
                         <th:block th:each="f : ${book.formats}">
                             <span th:switch="${f.formatType?.name()}" class="format-badge">

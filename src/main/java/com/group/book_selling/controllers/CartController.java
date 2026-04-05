@@ -1,5 +1,6 @@
 package com.group.book_selling.controllers;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.group.book_selling.models.Cart;
+import com.group.book_selling.models.Coupon;
 import com.group.book_selling.services.CartService;
+import com.group.book_selling.services.CouponService;
 import com.group.book_selling.utils.CartSessionUtils;
 
 import jakarta.servlet.http.HttpSession;
@@ -25,17 +28,22 @@ import lombok.RequiredArgsConstructor;
 public class CartController {
 
     private final CartService cartService;
+    private final CouponService couponService;
 
     @GetMapping("/view")
     public String showCart(Model model, HttpSession session) {
         Cart cart = CartSessionUtils.getOrCreate(session);
         var subtotal = cart.getTotalPrice("VND");
         var tax = cart.getTotalTax("VND");
-        var total = cart.getGrandTotalPrice("VND");
+        Coupon appliedCoupon = couponService.resolveAppliedCoupon(session);
+        BigDecimal discount = couponService.calculateDiscount(subtotal, appliedCoupon);
+        var total = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
 
         model.addAttribute("cart", cart);
         model.addAttribute("physicalItems", cart.getPhysicalItems());
         model.addAttribute("digitalItems", cart.getDigitalItems());
+        model.addAttribute("couponCode", appliedCoupon != null ? appliedCoupon.getCode() : "");
+        model.addAttribute("discount", discount);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("tax", tax);
         model.addAttribute("total", total);
@@ -53,7 +61,7 @@ public class CartController {
         try {
             cartService.addToCart(cart, bookId, sku, qty);
             CartSessionUtils.save(session, cart);
-            redirectAttrs.addFlashAttribute("success", "Added to cart successfully!");
+            redirectAttrs.addFlashAttribute("success", "Thêm vào giỏ hàng thành công.");
         } catch (Exception e) {
             redirectAttrs.addFlashAttribute("error", e.getMessage());
         }
@@ -74,13 +82,22 @@ public class CartController {
 
             var subtotal = cart.getTotalPrice("VND");
             var tax = cart.getTotalTax("VND");
-            var total = cart.getGrandTotalPrice("VND");
+            Coupon appliedCoupon = couponService.resolveAppliedCoupon(session);
+            BigDecimal discount = couponService.calculateDiscount(subtotal, appliedCoupon);
+            var total = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
+            var updatedItem = cart.getItems().stream()
+                    .filter(item -> item.getSku().equals(sku))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Không tìm thấy sản phẩm trong giỏ hàng."));
+            var lineTotal = updatedItem.getSubtotal();
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "qty", qty,
+                    "qty", updatedItem.getQty(),
+                    "lineTotal", lineTotal,
                     "subtotal", subtotal,
                     "tax", tax,
+                    "discount", discount,
                     "total", total));
 
         } catch (Exception e) {
