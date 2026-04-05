@@ -1,9 +1,13 @@
 package com.group.book_selling.controllers;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,11 +16,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.group.book_selling.models.Cart;
 import com.group.book_selling.models.Coupon;
+import com.group.book_selling.models.CouponType;
 import com.group.book_selling.models.CouponUsage;
+import com.group.book_selling.models.CustomUserDetail;
+import com.group.book_selling.models.User;
+import com.group.book_selling.repositories.IUserRepository;
 import com.group.book_selling.services.CouponService;
+import com.group.book_selling.utils.CartSessionUtils;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class CouponController {
 
     private final CouponService couponService;
+    private final IUserRepository userRepository;
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/coupons")
@@ -97,5 +110,66 @@ public class CouponController {
     @ResponseBody
     public ResponseEntity<Coupon> apply(@RequestParam String code, @RequestParam Long userId) {
         return ResponseEntity.ok(couponService.applyCoupon(code, userId));
+    }
+
+    @PostMapping("/coupons/apply-coupon")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> applyForCart(
+            @RequestParam String code,
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            HttpSession session) {
+
+        if (userDetail == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Vui lòng đăng nhập để áp dụng mã giảm giá."));
+        }
+
+        User user = userRepository.findByEmail(userDetail.getEmail());
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "Không tìm thấy thông tin người dùng."));
+        }
+
+        try {
+            Coupon applied = couponService.applyCoupon(code, user.getId());
+
+            Cart cart = CartSessionUtils.getOrCreate(session);
+            BigDecimal subtotal = cart.getTotalPrice("VND");
+            BigDecimal tax = cart.getTotalTax("VND");
+            BigDecimal discount = calculateDiscount(subtotal, applied);
+            BigDecimal finalTotal = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
+
+            session.setAttribute("appliedCouponCode", applied.getCode());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Áp dụng mã giảm giá thành công.",
+                    "couponCode", applied.getCode(),
+                    "subtotal", subtotal,
+                    "tax", tax,
+                    "discount", discount,
+                    "total", finalTotal));
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(Map.of(
+                    "success", false,
+                    "message", ex.getReason() == null ? "Áp dụng mã giảm giá thất bại." : ex.getReason()));
+        }
+    }
+
+    private BigDecimal calculateDiscount(BigDecimal subtotal, Coupon coupon) {
+        if (subtotal == null || coupon == null || coupon.getDiscountAmount() == null || coupon.getDiscountAmount() <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal discountValue = BigDecimal.valueOf(coupon.getDiscountAmount());
+        if (coupon.getDiscountType() == CouponType.PERCENTAGE) {
+            return subtotal.multiply(discountValue)
+                    .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP)
+                    .min(subtotal);
+        }
+
+        return discountValue.max(BigDecimal.ZERO).min(subtotal);
     }
 }

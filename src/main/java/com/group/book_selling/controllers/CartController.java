@@ -1,5 +1,7 @@
 package com.group.book_selling.controllers;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -13,7 +15,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.group.book_selling.models.Cart;
+import com.group.book_selling.models.Coupon;
+import com.group.book_selling.models.CouponType;
 import com.group.book_selling.services.CartService;
+import com.group.book_selling.services.CouponService;
 import com.group.book_selling.utils.CartSessionUtils;
 
 import jakarta.servlet.http.HttpSession;
@@ -25,17 +30,22 @@ import lombok.RequiredArgsConstructor;
 public class CartController {
 
     private final CartService cartService;
+    private final CouponService couponService;
 
     @GetMapping("/view")
     public String showCart(Model model, HttpSession session) {
         Cart cart = CartSessionUtils.getOrCreate(session);
         var subtotal = cart.getTotalPrice("VND");
         var tax = cart.getTotalTax("VND");
-        var total = cart.getGrandTotalPrice("VND");
+        Coupon appliedCoupon = resolveAppliedCoupon(session);
+        BigDecimal discount = calculateDiscount(subtotal, appliedCoupon);
+        var total = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
 
         model.addAttribute("cart", cart);
         model.addAttribute("physicalItems", cart.getPhysicalItems());
         model.addAttribute("digitalItems", cart.getDigitalItems());
+        model.addAttribute("couponCode", appliedCoupon != null ? appliedCoupon.getCode() : "");
+        model.addAttribute("discount", discount);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("tax", tax);
         model.addAttribute("total", total);
@@ -74,13 +84,16 @@ public class CartController {
 
             var subtotal = cart.getTotalPrice("VND");
             var tax = cart.getTotalTax("VND");
-            var total = cart.getGrandTotalPrice("VND");
+                Coupon appliedCoupon = resolveAppliedCoupon(session);
+                BigDecimal discount = calculateDiscount(subtotal, appliedCoupon);
+                var total = subtotal.add(tax).subtract(discount).max(BigDecimal.ZERO);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "qty", qty,
                     "subtotal", subtotal,
                     "tax", tax,
+                    "discount", discount,
                     "total", total));
 
         } catch (Exception e) {
@@ -105,5 +118,40 @@ public class CartController {
             redirectAttrs.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/cart/view";
+    }
+
+    private Coupon resolveAppliedCoupon(HttpSession session) {
+        Object appliedCode = session.getAttribute("appliedCouponCode");
+        if (!(appliedCode instanceof String code) || code.isBlank()) {
+            return null;
+        }
+
+        Coupon coupon = couponService.findByCode(code);
+        if (coupon == null) {
+            session.removeAttribute("appliedCouponCode");
+            return null;
+        }
+
+        if (couponService.findValidCoupons().stream().noneMatch(c -> c.getId().equals(coupon.getId()))) {
+            session.removeAttribute("appliedCouponCode");
+            return null;
+        }
+
+        return coupon;
+    }
+
+    private BigDecimal calculateDiscount(BigDecimal subtotal, Coupon coupon) {
+        if (subtotal == null || coupon == null || coupon.getDiscountAmount() == null || coupon.getDiscountAmount() <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal discountValue = BigDecimal.valueOf(coupon.getDiscountAmount());
+        if (coupon.getDiscountType() == CouponType.PERCENTAGE) {
+            return subtotal.multiply(discountValue)
+                    .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP)
+                    .min(subtotal);
+        }
+
+        return discountValue.max(BigDecimal.ZERO).min(subtotal);
     }
 }

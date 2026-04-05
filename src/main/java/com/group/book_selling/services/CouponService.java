@@ -44,16 +44,16 @@ public class CouponService {
     public Coupon applyCoupon(String code, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
-                "User not found"));
+                "Không tìm thay người dùng với ID: " + userId));
 
         Coupon validCoupon = couponRepository.findValidCoupon(code).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Invalid or expired coupon code: " + code));
+                        "Mã giảm giá không hợp lệ hoặc đã hết hạn: " + code));
 
         boolean alreadyUsed = couponUsageRepository.countByCouponIdAndUserId(validCoupon.getId(), userId) > 0;
         if (alreadyUsed) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Coupon already used by this user");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Mã giảm giá đã được sử dụng bởi người dùng này");
         }
 
         validCoupon.addUsage(user);
