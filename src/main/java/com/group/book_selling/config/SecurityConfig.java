@@ -70,9 +70,10 @@ public class SecurityConfig {
                                                                 "/coupons/**",
                                                                 "/categories/**",
                                                                 "/publishers",
-                                                                "/publishers/**")
+                                                                "/publishers/**",
+                                                                "/uploads/**")
                                                 .permitAll()
-                                                .requestMatchers("/user/**")
+                                                .requestMatchers("/user/**", "/orders/**")
                                                 .hasAnyRole(UserRole.ADMIN.name(), UserRole.USER.name())
                                                 .anyRequest().authenticated())
                                 .logout(logout -> logout
