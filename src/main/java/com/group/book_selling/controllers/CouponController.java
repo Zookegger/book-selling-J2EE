@@ -64,7 +64,7 @@ public class CouponController {
     @PostMapping("/admin/coupons/create")
     public String create(@Valid @ModelAttribute Coupon request) {
         couponService.create(request);
-        return "redirect:/coupons";
+        return "redirect:/admin/coupon/list";
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -80,14 +80,14 @@ public class CouponController {
     @PostMapping("/admin/coupons/{id}/edit")
     public String update(@PathVariable Long id, @Valid @ModelAttribute Coupon request) {
         couponService.update(id, request);
-        return "redirect:/coupons";
+        return "redirect:/admin/coupon/list";
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/coupons/{id}/delete")
     public String delete(@PathVariable Long id) {
         couponService.delete(id);
-        return "redirect:/coupons";
+        return "redirect:/admin/coupon/list";
     }
 
     @GetMapping("/coupons/usages")
