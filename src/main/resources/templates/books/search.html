@@ -25,11 +25,11 @@
                 <p class="text-muted mb-0"
                     th:text="${keyword != null and !keyword.isEmpty()}
                        ? 'Kết quả tìm kiếm cho: ' + keyword
-                       : (${isAdmin} ? 'Quản lý toàn bộ sách trong hệ thống.' : 'Khám phá toàn bộ sách trên cửa hàng.')">
+                       : (${#authorization.expression('hasRole(''ADMIN'')')} ? 'Quản lý toàn bộ sách trong hệ thống.' : 'Khám phá toàn bộ sách trên cửa hàng.')">
                 </p>
             </div>
             <!-- Admin only: add-book button -->
-            <a th:if="${isAdmin}" class="btn btn-primary" th:href="@{/books/new}">
+            <a th:if="${#authorization.expression('hasRole(''ADMIN'')')}" class="btn btn-primary" th:href="@{/books/new}">
                 <i class="fa fa-plus me-1"></i> Thêm sách
             </a>
         </div>
@@ -39,7 +39,7 @@
         </div>
 
         <!-- ── Book grid ───────────────────────────────────────────────── -->
-        <th:block th:replace="~{books/components/bookGrid :: bookGrid(books=${books}, isAdmin=${isAdmin})}"></th:block>
+        <th:block th:replace="~{books/components/bookGrid :: bookGrid(books=${books}, isAdmin=${#authorization.expression('hasRole(''ADMIN'')')})}"></th:block>
 
     </main>
 

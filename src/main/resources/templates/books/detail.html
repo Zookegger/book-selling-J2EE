@@ -68,7 +68,7 @@
                     <div class="position-relative overflow-hidden rounded-4 shadow-lg">
                         <div th:if="${book.coverImage != null and !book.coverImage.isBlank()}" class="w-100">
                             <img th:src="${book.coverImage}" class="img-fluid w-100" alt="Ảnh bìa sách"
-                                style="object-fit: cover; max-height: 550px;" />
+                                style="object-fit: contain; max-height: 550px;" />
                         </div>
                         <div th:if="${book.coverImage == null or book.coverImage.isBlank()}"
                             class="book-cover-placeholder d-flex align-items-center justify-content-center bg-light">

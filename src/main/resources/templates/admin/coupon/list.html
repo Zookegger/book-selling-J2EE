@@ -193,7 +193,7 @@
             const resetCreateMode = () => {
                 formTitle.textContent = "Tạo mã giảm giá";
                 submitText.textContent = "Tạo mã";
-                couponForm.action = "/coupons/create";
+                couponForm.action = "/admin/coupons/create";
                 couponForm.reset();
                 fieldDiscountType.value = "PERCENTAGE";
                 setAmountHint();
@@ -208,7 +208,7 @@
 
                 formTitle.textContent = "Cập nhật mã giảm giá";
                 submitText.textContent = "Lưu thay đổi";
-                couponForm.action = `/coupons/${trigger.dataset.id}/edit`;
+                couponForm.action = `/admin/coupons/${trigger.dataset.id}/edit`;
 
                 fieldCode.value = trigger.dataset.code || "";
                 fieldDescription.value = trigger.dataset.description || "";
