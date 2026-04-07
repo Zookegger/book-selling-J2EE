@@ -1,5 +1,7 @@
 package com.group.book_selling.controllers;
 
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,7 +9,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpSession;
@@ -22,6 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.group.book_selling.models.Book;
+import com.group.book_selling.models.BookFormat;
+import com.group.book_selling.models.BookFormatType;
 import com.group.book_selling.models.Cart;
 import com.group.book_selling.services.CartService;
 import com.group.book_selling.services.CouponService;
@@ -40,6 +47,8 @@ public class CartControllerTest {
 	void setUp() {
 		CartController controller = new CartController(cartService, couponService);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+		lenient().when(couponService.resolveAppliedCoupon(any())).thenReturn(null);
+		lenient().when(couponService.calculateDiscount(any(), any())).thenReturn(BigDecimal.ZERO);
 	}
 
 	@Test
@@ -95,6 +104,28 @@ public class CartControllerTest {
 	void updateCart_success_returnsJsonAndCallsService() throws Exception {
 		MockHttpSession session = new MockHttpSession();
 		Cart cart = new Cart();
+		Book book = new Book();
+		book.setId(10L);
+		book.setTitle("Sample Book");
+		book.setSlug("sample-book");
+
+		BookFormat format = new BookFormat();
+		format.setSku("SKU-PHYSICAL");
+		format.setFormatType(BookFormatType.PHYSICAL);
+		format.setActive(true);
+		format.setPrice(BigDecimal.valueOf(100000));
+		format.setCurrency("VND");
+		format.setStockQuantity(20);
+		cart.add(book, format, 1);
+
+		doAnswer(invocation -> {
+			Cart target = invocation.getArgument(0);
+			target.getItems().stream()
+					.filter(item -> "SKU-PHYSICAL".equals(item.getSku()))
+					.findFirst()
+					.ifPresent(item -> item.setQty(4));
+			return null;
+		}).when(cartService).updateQty(any(Cart.class), eq(10L), eq("SKU-PHYSICAL"), eq(4));
 		session.setAttribute("cart", cart);
 
 		mockMvc.perform(post("/cart/update")

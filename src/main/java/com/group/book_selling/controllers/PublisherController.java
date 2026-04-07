@@ -8,6 +8,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,6 +39,9 @@ public class PublisherController {
 
     private final PublisherService publisherService;
     private final BookService bookService;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadRootDir;
 
     /** Lấy danh sách nhà xuất bản. */
     @GetMapping
@@ -101,8 +105,7 @@ public class PublisherController {
             String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
             String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
 
-            String uploadDir = "uploads/publishers";
-            Path uploadPath = Paths.get(uploadDir);
+            Path uploadPath = Paths.get(uploadRootDir, "publishers");
 
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);

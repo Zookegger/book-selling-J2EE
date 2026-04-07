@@ -9,6 +9,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -48,6 +49,9 @@ import lombok.RequiredArgsConstructor;
 public class BookController {
 
     private final BookService bookService;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadRootDir;
 
     @GetMapping
     public String list(@RequestParam(required = false) String keyword, Model model) {
@@ -105,20 +109,7 @@ public class BookController {
 
             // XỬ LÝ LƯU FILE
             if (coverFile != null && !coverFile.isEmpty()) {
-                String originalFileName = StringUtils.cleanPath(coverFile.getOriginalFilename());
-                String fileName = System.currentTimeMillis() + "_" + originalFileName;
-                String uploadDir = "uploads/";
-                Path uploadPath = Paths.get(uploadDir);
-
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                try (InputStream inputStream = coverFile.getInputStream()) {
-                    Path filePath = uploadPath.resolve(fileName);
-                    Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-                }
-                coverImagePath = "/uploads/" + fileName;
+                coverImagePath = storeUploadedFile(coverFile, "", "/uploads/");
             }
 
             applyUploadedFormatFiles(request, formatFiles);
@@ -186,21 +177,7 @@ public class BookController {
 
             // 2. Xử lý nếu người dùng có chọn ảnh mới
             if (coverFile != null && !coverFile.isEmpty()) {
-                String originalFileName = StringUtils.cleanPath(coverFile.getOriginalFilename());
-                String fileName = System.currentTimeMillis() + "_" + originalFileName;
-                String uploadDir = "uploads/";
-                Path uploadPath = Paths.get(uploadDir);
-
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                try (InputStream inputStream = coverFile.getInputStream()) {
-                    Path filePath = uploadPath.resolve(fileName);
-                    Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-                }
-
-                coverImagePath = "/uploads/" + fileName;
+                coverImagePath = storeUploadedFile(coverFile, "", "/uploads/");
             }
 
             preserveExistingFormatFileMetadata(existing, request, formatFiles);
@@ -274,7 +251,7 @@ public class BookController {
                 continue;
             }
 
-            String storedPath = storeUploadedFile(uploadedFile, "uploads/formats");
+            String storedPath = storeUploadedFile(uploadedFile, "formats", "/uploads/formats/");
             request.formats().get(i).setFile(storedPath);
             request.formats().get(i).setFileSize(uploadedFile.getSize());
         }
@@ -324,10 +301,10 @@ public class BookController {
         }
     }
 
-    private String storeUploadedFile(MultipartFile file, String uploadDir) throws IOException {
+    private String storeUploadedFile(MultipartFile file, String subDirectory, String publicPrefix) throws IOException {
         String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
         String fileName = System.currentTimeMillis() + "_" + originalFileName;
-        Path uploadPath = Paths.get(uploadDir);
+        Path uploadPath = resolveUploadPath(subDirectory);
 
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
@@ -338,7 +315,15 @@ public class BookController {
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        return "/uploads/formats/" + fileName;
+        return publicPrefix + fileName;
+    }
+
+    private Path resolveUploadPath(String subDirectory) {
+        Path basePath = Paths.get(uploadRootDir);
+        if (subDirectory == null || subDirectory.isBlank()) {
+            return basePath;
+        }
+        return basePath.resolve(subDirectory);
     }
 
     private void addReferenceData(Model model) {
